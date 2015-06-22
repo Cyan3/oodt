@@ -1,0 +1,31 @@
+{
+    "protocol": "AbsCrawlDaemon",
+    "namespace": "protocol.crawlDaemonProtocol",
+    "messages":
+    {
+        "getAverageCrawlTime":{
+            "request":[],
+            "response": "double"
+        },
+        "getMilisCrawling":{
+            "request":[],
+            "response": "int"
+        },
+        "getWaitInterval":{
+            "request":[],
+            "response": "int"
+        },
+        "getNumCrawls":{
+            "request":[],
+            "response": "int"
+        },
+        "isRunning":{
+            "request":[],
+            "response": "boolean"
+        },
+        "stop":{
+            "request":[],
+            "response": "boolean"
+        }
+    }
+}

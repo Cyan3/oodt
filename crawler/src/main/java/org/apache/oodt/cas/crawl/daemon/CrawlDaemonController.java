@@ -19,17 +19,22 @@
 package org.apache.oodt.cas.crawl.daemon;
 
 //OODT imports
+import org.apache.avro.AvroRemoteException;
+import org.apache.avro.ipc.HttpTransceiver;
+import org.apache.avro.ipc.NettyTransceiver;
+import org.apache.avro.ipc.Transceiver;
+import org.apache.avro.ipc.specific.SpecificRequestor;
 import org.apache.oodt.cas.crawl.structs.exceptions.CrawlException;
 
 //JDK imports
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.*;
 import java.util.Vector;
 
 //APACHE imports
 import org.apache.xmlrpc.XmlRpcClient;
 import org.apache.xmlrpc.XmlRpcException;
+import protocol.crawlDaemonProtocol.AbsCrawlDaemon;
 
 /**
  * @author mattmann
@@ -43,30 +48,32 @@ public class CrawlDaemonController {
 
     /* our xml rpc client */
     private XmlRpcClient client = null;
+    //private Transceiver ntClient = null;
+    AbsCrawlDaemon proxy = null;
+
 
     public CrawlDaemonController(String crawlUrlStr)
             throws InstantiationException {
         try {
-            client = new XmlRpcClient(new URL(crawlUrlStr));
-        } catch (MalformedURLException e) {
+            //client = new XmlRpcClient(new URL(crawlUrlStr));
+            URL url = new URL(crawlUrlStr);
+            Transceiver ntClient = new HttpTransceiver(url);
+            this.proxy = (AbsCrawlDaemon) SpecificRequestor.getClient(AbsCrawlDaemon.class, ntClient);
+        } catch (IOException e)
+        {
             throw new InstantiationException(e.getMessage());
         }
     }
 
     public double getAverageCrawlTime() throws CrawlException {
-        Vector argList = new Vector();
 
         double avgCrawlTime = -1.0d;
 
         try {
-            avgCrawlTime = ((Double) client.execute(
-                    "crawldaemon.getAverageCrawlTime", argList)).doubleValue();
-        } catch (XmlRpcException e) {
-            throw new CrawlException(e.getMessage());
-        } catch (IOException e) {
+            avgCrawlTime = proxy.getAverageCrawlTime();
+        } catch (AvroRemoteException e) {
             throw new CrawlException(e.getMessage());
         }
-
         return avgCrawlTime;
     }
 
@@ -76,11 +83,8 @@ public class CrawlDaemonController {
         int milisCrawling = -1;
 
         try {
-            milisCrawling = ((Integer) client.execute(
-                    "crawldaemon.getMilisCrawling", argList)).intValue();
-        } catch (XmlRpcException e) {
-            throw new CrawlException(e.getMessage());
-        } catch (IOException e) {
+            milisCrawling = proxy.getMilisCrawling();
+        } catch (AvroRemoteException e) {
             throw new CrawlException(e.getMessage());
         }
 
@@ -88,16 +92,12 @@ public class CrawlDaemonController {
     }
 
     public int getWaitInterval() throws CrawlException {
-        Vector argList = new Vector();
 
         int waitInterval = -1;
 
         try {
-            waitInterval = ((Integer) client.execute(
-                    "crawldaemon.getWaitInterval", argList)).intValue();
-        } catch (XmlRpcException e) {
-            throw new CrawlException(e.getMessage());
-        } catch (IOException e) {
+            waitInterval = proxy.getWaitInterval();
+        } catch (AvroRemoteException e) {
             throw new CrawlException(e.getMessage());
         }
 
@@ -105,15 +105,12 @@ public class CrawlDaemonController {
     }
 
     public int getNumCrawls() throws CrawlException {
-        Vector argList = new Vector();
+
         int numCrawls = -1;
 
         try {
-            numCrawls = ((Integer) client.execute("crawldaemon.getNumCrawls",
-                    argList)).intValue();
-        } catch (XmlRpcException e) {
-            throw new CrawlException(e.getMessage());
-        } catch (IOException e) {
+            numCrawls = proxy.getWaitInterval();
+        } catch (AvroRemoteException e) {
             throw new CrawlException(e.getMessage());
         }
 
@@ -122,15 +119,11 @@ public class CrawlDaemonController {
     }
 
     public boolean isRunning() throws CrawlException {
-        Vector argList = new Vector();
         boolean running = false;
 
         try {
-            running = ((Boolean) client.execute("crawldaemon.isRunning",
-                    argList)).booleanValue();
-        } catch (XmlRpcException e) {
-            throw new CrawlException(e.getMessage());
-        } catch (IOException e) {
+            running = proxy.isRunning();
+        } catch (AvroRemoteException e) {
             throw new CrawlException(e.getMessage());
         }
 
@@ -142,11 +135,8 @@ public class CrawlDaemonController {
         boolean running = false;
 
         try {
-            running = ((Boolean) client.execute("crawldaemon.stop", argList))
-                    .booleanValue();
-        } catch (XmlRpcException e) {
-            throw new CrawlException(e.getMessage());
-        } catch (IOException e) {
+            running = proxy.stop();
+        } catch (AvroRemoteException e) {
             throw new CrawlException(e.getMessage());
         }
 

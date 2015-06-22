@@ -19,14 +19,19 @@
 package org.apache.oodt.cas.crawl.daemon;
 
 //OODT imports
+import org.apache.avro.ipc.NettyServer;
+import org.apache.avro.ipc.Server;
+import org.apache.avro.ipc.specific.SpecificResponder;
 import org.apache.oodt.cas.crawl.ProductCrawler;
 
 //JDK imports
+import java.net.InetSocketAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 //APACHE imports
 import org.apache.xmlrpc.WebServer;
+import protocol.crawlDaemonProtocol.AbsCrawlDaemon;
 
 /**
  * @author mattmann
@@ -38,7 +43,7 @@ import org.apache.xmlrpc.WebServer;
  * kept. The daemon is an XML-RPC accessible web service.
  * </p>.
  */
-public class CrawlDaemon {
+public class CrawlDaemon implements AbsCrawlDaemon{
 
     /* our log stream */
     private static Logger LOG = Logger.getLogger(CrawlDaemon.class.getName());
@@ -68,11 +73,8 @@ public class CrawlDaemon {
     }
 
     public void startCrawling() {
-        // start up the web server
-        WebServer server = new WebServer(this.daemonPort);
-        server.addHandler("crawldaemon", this);
+        Server  server = new NettyServer(new SpecificResponder(AbsCrawlDaemon.class,this),new InetSocketAddress(this.daemonPort));
         server.start();
-
         LOG.log(Level.INFO, "Crawl Daemon started by "
                 + System.getProperty("user.name", "unknown"));
 
@@ -91,14 +93,13 @@ public class CrawlDaemon {
             } catch (InterruptedException ignore) {
             }
         }
-
         LOG.log(Level.INFO, "Crawl Daemon: Shutting down gracefully");
         LOG.log(Level.INFO, "Num Crawls: [" + this.numCrawls + "]");
         LOG.log(Level.INFO, "Total time spent crawling: ["
                 + (this.milisCrawling / 1000.0) + "] seconds");
         LOG.log(Level.INFO, "Average Crawl Time: ["
                 + (this.getAverageCrawlTime() / 1000.0) + "] seconds");
-        server.shutdown();
+        server. close();
     }
 
     public double getAverageCrawlTime() {
@@ -158,8 +159,6 @@ public class CrawlDaemon {
     }
 
     /**
-     * @param running
-     *            the running to set
      */
     public boolean stop() {
         this.running = false;
