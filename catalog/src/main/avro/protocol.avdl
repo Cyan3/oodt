@@ -1,0 +1,102 @@
+@namespace("org.apache.oodt.cas.catalog.server.channel.avrorpc.avrotypes")
+
+protocol AvroCommunicationChannel {
+
+    void shutdown();
+
+    boolean isRestrictQueryPermissions();
+
+    boolean isRestrictIngestPermissions();
+
+//    void addCatalog(Catalog catalog);
+//
+//    void replaceCatalog(Catalog catalog);
+//
+//    void addCatalog(String catalogId, Index index);
+//
+//
+//    void addCatalog(String catalogId, Index index, List<Dictionary> dictionaries);
+//
+//
+//    void addCatalog(String catalogId, Index index, List<Dictionary> dictionaries, boolean restrictQueryPermission, boolean restrictIngestPermission) ;
+//
+//
+//    void addDictionary(String catalogId, Dictionary dictionary);
+//
+//
+//    void replaceDictionaries(String catalogId, List<Dictionary> dictionaries);
+//
+//
+//    void replaceIndex(String catalogId, Index index);
+//
+//
+//    void modifyIngestPermission(String catalogId, boolean restrictIngestPermission);
+//
+//
+//    void modifyQueryPermission(String catalogId, boolean restrictQueryPermission);
+//
+//
+//    void removeCatalog(String catalogUrn);
+//
+//
+//    List<PluginURL> getPluginUrls();
+//
+//
+//    void addPluginUrls(List<PluginURL> pluginUrls);
+//
+//
+//    public URL getPluginStorageDir()
+//
+//
+//    void transferUrl(URL fromUrl, URL toURL);
+//
+//    protected void transferFile(String filePath, byte[] fileData, int offset,
+//                                int numBytes);
+//
+//
+//    Set<String> getCurrentCatalogIds();
+//
+//
+//    TransactionReceipt ingest(Metadata metadata);
+//
+//    void delete(Metadata metadata);
+//
+//
+//    List<String> getProperty(String key);
+//
+//    Properties getCalalogProperties();
+//
+//    Properties getCalalogProperties(String catalogUrn)
+//
+//    Page getNextPage(Page page);
+//
+//    Page getPage(PageInfo pageInfo, QueryExpression queryExpression);
+//    @Override
+//    Page getPage(PageInfo pageInfo, QueryExpression queryExpression, Set<String> catalogIds);
+//
+//    List<TransactionalMetadata> getMetadata(Page page);
+//
+//
+//    QueryPager query(QueryExpression queryExpression);
+//
+//    QueryPager query(QueryExpression queryExpression, Set<String> catalogIds);
+//
+//
+//    List<TransactionalMetadata> getNextPage(QueryPager queryPager);
+//     // somethings is wrong
+//
+//    List<TransactionId<?>> getTransactionIdsForAllPages(QueryPager queryPager);
+//
+//    List<TransactionalMetadata> getAllPages(QueryPager queryPager);
+//
+//    List<TransactionalMetadata> getMetadataFromTransactionIdStrings(List<String> catalogServiceTransactionIdStrings);
+//
+//    List<TransactionalMetadata> getMetadataFromTransactionIds(List<TransactionId<?>> catalogServiceTransactionIds);
+//
+//    List<TransactionId<?>> getCatalogServiceTransactionIds(List<TransactionId<?>> catalogTransactionIds, String catalogUrn);
+//
+//    TransactionId<?> getCatalogServiceTransactionId(TransactionId<?> catalogTransactionId, String catalogUrn);
+//
+//    TransactionId<?> getCatalogServiceTransactionId(CatalogReceipt catalogReceipt, boolean generateNew);
+
+}
