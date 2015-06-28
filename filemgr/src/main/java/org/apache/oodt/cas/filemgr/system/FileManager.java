@@ -17,31 +17,15 @@
 
 package org.apache.oodt.cas.filemgr.system;
 
-//APACHE imports
-import org.apache.xmlrpc.WebServer;
-
 //OODT imports
-import org.apache.oodt.cas.metadata.Metadata;
-import org.apache.oodt.cas.metadata.exceptions.MetExtractionException;
-import org.apache.oodt.commons.date.DateUtils;
 import org.apache.oodt.cas.filemgr.catalog.Catalog;
+import org.apache.oodt.cas.filemgr.datatransfer.DataTransfer;
+import org.apache.oodt.cas.filemgr.datatransfer.TransferStatusTracker;
 import org.apache.oodt.cas.filemgr.metadata.ProductMetKeys;
 import org.apache.oodt.cas.filemgr.metadata.extractors.FilemgrMetExtractor;
 import org.apache.oodt.cas.filemgr.repository.RepositoryManager;
-import org.apache.oodt.cas.filemgr.structs.Element;
-import org.apache.oodt.cas.filemgr.structs.ExtractorSpec;
-import org.apache.oodt.cas.filemgr.structs.FileTransferStatus;
-import org.apache.oodt.cas.filemgr.structs.ProductPage;
-import org.apache.oodt.cas.filemgr.structs.ProductType;
-import org.apache.oodt.cas.filemgr.structs.Product;
-import org.apache.oodt.cas.filemgr.structs.Query;
-import org.apache.oodt.cas.filemgr.structs.Reference;
-import org.apache.oodt.cas.filemgr.structs.exceptions.CatalogException;
-import org.apache.oodt.cas.filemgr.structs.exceptions.QueryFormulationException;
-import org.apache.oodt.cas.filemgr.structs.exceptions.RepositoryManagerException;
-import org.apache.oodt.cas.filemgr.structs.exceptions.DataTransferException;
-import org.apache.oodt.cas.filemgr.structs.exceptions.ValidationLayerException;
-import org.apache.oodt.cas.filemgr.structs.exceptions.VersioningException;
+import org.apache.oodt.cas.filemgr.structs.*;
+import org.apache.oodt.cas.filemgr.structs.exceptions.*;
 import org.apache.oodt.cas.filemgr.structs.query.ComplexQuery;
 import org.apache.oodt.cas.filemgr.structs.query.QueryFilter;
 import org.apache.oodt.cas.filemgr.structs.query.QueryResult;
@@ -49,52 +33,30 @@ import org.apache.oodt.cas.filemgr.structs.query.QueryResultComparator;
 import org.apache.oodt.cas.filemgr.structs.query.filter.ObjectTimeEvent;
 import org.apache.oodt.cas.filemgr.structs.query.filter.TimeEvent;
 import org.apache.oodt.cas.filemgr.structs.type.TypeHandler;
-import org.apache.oodt.cas.filemgr.datatransfer.DataTransfer;
 import org.apache.oodt.cas.filemgr.util.GenericFileManagerObjectFactory;
-import org.apache.oodt.cas.filemgr.util.XmlRpcStructFactory;
 import org.apache.oodt.cas.filemgr.versioning.Versioner;
 import org.apache.oodt.cas.filemgr.versioning.VersioningUtils;
-import org.apache.oodt.cas.filemgr.datatransfer.TransferStatusTracker;
-
-import com.google.common.collect.Lists;
-
-
-
+import org.apache.oodt.cas.metadata.Metadata;
+import org.apache.oodt.cas.metadata.exceptions.MetExtractionException;
+import org.apache.oodt.commons.date.DateUtils;
 
 //JDK imports
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Arrays;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Vector;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
+import com.google.common.collect.Lists;
 
 /**
- * @author mattmann
- * @author bfoster
- * @version $Revision$
- * 
- * <p>
- * An XML RPC-based File manager.
- * </p>
- * 
+ * @author radu
+ *
+ * <p>Manages the {@link Catalog}, {@link RepositoryManager} and {@link DataTransfer}.
+ * Without the rpc logic.</p>
  */
-public class XmlRpcFileManager {
+public class FileManager {
 
-    /* the port to run the XML RPC web server on, default is 1999 */
-    private int webServerPort = 1999;
-
-    /* our Catalog */
     private Catalog catalog = null;
 
     /* our RepositoryManager */
@@ -104,102 +66,64 @@ public class XmlRpcFileManager {
     private DataTransfer dataTransfer = null;
 
     /* our log stream */
-    private static final Logger LOG = Logger.getLogger(XmlRpcFileManager.class.getName());
+    private static final Logger LOG = Logger.getLogger(FileManager.class.getName());
 
-    /* our xml rpc web server */
-    private WebServer webServer = null;
 
     /* our data transfer status tracker */
     private TransferStatusTracker transferStatusTracker = null;
-    
+
     /* whether or not to expand a product instance into met */
     private boolean expandProductMet;
-    
-    /**
-     * <p>
-     * Creates a new XmlRpcFileManager with the given metadata store factory,
-     * and the given data store factory, on the given port.
-     * </p>
-     * 
-     * @param port
-     *            The web server port to run the XML Rpc server on, defaults to
-     *            1999.
-     */
-    public XmlRpcFileManager(int port) throws Exception {
-        webServerPort = port;
 
-        // start up the web server
-        webServer = new WebServer(webServerPort);
-        webServer.addHandler("filemgr", this);
-        webServer.start();
-
-        this.loadConfiguration();
+    public FileManager() throws Exception {
         LOG.log(Level.INFO, "File Manager started by "
                 + System.getProperty("user.name", "unknown"));
-
     }
-    
+
     public void setCatalog(Catalog catalog) {
         this.catalog = catalog;
     }
 
-    public boolean isAlive() {
-        return true;
-    }
-    
     public boolean refreshConfigAndPolicy() {
-      boolean status = false;
+        boolean status = false;
 
-      try {
-        this.loadConfiguration();
-        status = true;
-      } catch (Exception e) {
-        e.printStackTrace();
-        LOG
-            .log(
-                Level.SEVERE,
-                "Unable to refresh configuration for file manager " +
-                "server: server may be in inoperable state: Message: "
-                    + e.getMessage());
-      }
-  
-      return status;
+        try {
+            this.loadConfiguration();
+            status = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOG
+                    .log(
+                            Level.SEVERE,
+                            "Unable to refresh configuration for file manager " +
+                                    "server: server may be in inoperable state: Message: "
+                                    + e.getMessage());
+        }
+
+        return status;
     }
 
-    public boolean transferringProduct(Hashtable<String, Object> productHash) {
-        Product p = XmlRpcStructFactory.getProductFromXmlRpc(productHash);
-        transferStatusTracker.transferringProduct(p);
+    public boolean transferringProduct(Product product) {
+        transferStatusTracker.transferringProduct(product);
         return true;
     }
 
-    public Hashtable<String, Object> getCurrentFileTransfer() {
-        FileTransferStatus status = transferStatusTracker
+    public FileTransferStatus getCurrentFileTransfer() {
+        return transferStatusTracker
                 .getCurrentFileTransfer();
-        if (status == null) {
-            return new Hashtable<String, Object>();
-        } else
-            return XmlRpcStructFactory.getXmlRpcFileTransferStatus(status);
     }
 
-    public Vector<Hashtable<String, Object>> getCurrentFileTransfers() {
-        List<FileTransferStatus> currentTransfers = transferStatusTracker.getCurrentFileTransfers();
-
-        if (currentTransfers != null && currentTransfers.size() > 0) {
-            return XmlRpcStructFactory
-                    .getXmlRpcFileTransferStatuses(currentTransfers);
-        } else
-            return new Vector<Hashtable<String, Object>>();
+    public List<FileTransferStatus> getCurrentFileTransfers() {
+        return transferStatusTracker.getCurrentFileTransfers();
     }
 
-    public double getProductPctTransferred(Hashtable<String, Object> productHash) {
-        Product product = XmlRpcStructFactory.getProductFromXmlRpc(productHash);
+    public double getProductPctTransferred(Product product) {
+
         double pct = transferStatusTracker.getPctTransferred(product);
         return pct;
     }
 
-    public double getRefPctTransferred(Hashtable<String, Object> refHash) {
-        Reference reference = XmlRpcStructFactory
-                .getReferenceFromXmlRpc(refHash);
+    public double getRefPctTransferred(Reference reference) {
         double pct = 0.0;
 
         try {
@@ -214,24 +138,19 @@ public class XmlRpcFileManager {
         return pct;
     }
 
-    public boolean removeProductTransferStatus(Hashtable<String, Object> productHash) {
-        Product product = XmlRpcStructFactory.getProductFromXmlRpc(productHash);
+    public boolean removeProductTransferStatus(Product product) {
         transferStatusTracker.removeProductTransferStatus(product);
         return true;
     }
 
-    public boolean isTransferComplete(Hashtable<String, Object> productHash) {
-        Product product = XmlRpcStructFactory.getProductFromXmlRpc(productHash);
+    public boolean isTransferComplete(Product product) {
         return transferStatusTracker.isTransferComplete(product);
     }
 
-    public Hashtable<String, Object> pagedQuery(
-            Hashtable<String, Object> queryHash,
-            Hashtable<String, Object> productTypeHash,
+    public ProductPage pagedQuery(
+            Query query,
+            ProductType type,
             int pageNum) throws CatalogException {
-        ProductType type = XmlRpcStructFactory
-                .getProductTypeFromXmlRpc(productTypeHash);
-        Query query = XmlRpcStructFactory.getQueryFromXmlRpc(queryHash);
 
         ProductPage prodPage = null;
 
@@ -256,13 +175,11 @@ public class XmlRpcFileManager {
             throw new CatalogException(e.getMessage());
         }
 
-        return XmlRpcStructFactory.getXmlRpcProductPage(prodPage);
+        return prodPage;
     }
 
-    public Hashtable<String, Object> getFirstPage(
-            Hashtable<String, Object> productTypeHash) {
-        ProductType type = XmlRpcStructFactory
-                .getProductTypeFromXmlRpc(productTypeHash);
+    public ProductPage getFirstPage(
+            ProductType type) {
         ProductPage page = catalog.getFirstPage(type);
         try {
             setProductType(page.getPageProducts());
@@ -271,13 +188,12 @@ public class XmlRpcFileManager {
                     "Unable to set product types for product page list: ["
                             + page + "]");
         }
-        return XmlRpcStructFactory.getXmlRpcProductPage(page);
+        return page;
     }
 
-    public Hashtable<String, Object> getLastPage(
-            Hashtable<String, Object> productTypeHash) {
-        ProductType type = XmlRpcStructFactory
-                .getProductTypeFromXmlRpc(productTypeHash);
+    public ProductPage getLastPage(
+            ProductType type ) {
+
         ProductPage page = catalog.getLastProductPage(type);
         try {
             setProductType(page.getPageProducts());
@@ -286,16 +202,13 @@ public class XmlRpcFileManager {
                     "Unable to set product types for product page list: ["
                             + page + "]");
         }
-        return XmlRpcStructFactory.getXmlRpcProductPage(page);
+        return page;
     }
 
-    public Hashtable<String, Object> getNextPage(
-            Hashtable<String, Object> productTypeHash,
-            Hashtable<String, Object> currentPageHash) {
-        ProductType type = XmlRpcStructFactory
-                .getProductTypeFromXmlRpc(productTypeHash);
-        ProductPage currPage = XmlRpcStructFactory
-                .getProductPageFromXmlRpc(currentPageHash);
+    public ProductPage getNextPage(
+            ProductType type ,
+            ProductPage currPage) {
+
         ProductPage page = catalog.getNextPage(type, currPage);
         try {
             setProductType(page.getPageProducts());
@@ -304,16 +217,12 @@ public class XmlRpcFileManager {
                     "Unable to set product types for product page list: ["
                             + page + "]");
         }
-        return XmlRpcStructFactory.getXmlRpcProductPage(page);
+        return page;
     }
 
-    public Hashtable<String, Object> getPrevPage(
-            Hashtable<String, Object> productTypeHash,
-            Hashtable<String, Object> currentPageHash) {
-        ProductType type = XmlRpcStructFactory
-                .getProductTypeFromXmlRpc(productTypeHash);
-        ProductPage currPage = XmlRpcStructFactory
-                .getProductPageFromXmlRpc(currentPageHash);
+    public ProductPage getPrevPage(
+            ProductType type,
+            ProductPage currPage) {
         ProductPage page = catalog.getPrevPage(type, currPage);
         try {
             setProductType(page.getPageProducts());
@@ -322,32 +231,26 @@ public class XmlRpcFileManager {
                     "Unable to set product types for product page list: ["
                             + page + "]");
         }
-        return XmlRpcStructFactory.getXmlRpcProductPage(page);
+        return page;
     }
 
-    public String addProductType(Hashtable<String, Object> productTypeHash)
+    public String addProductType(ProductType productType)
             throws RepositoryManagerException {
-        ProductType productType = XmlRpcStructFactory
-                .getProductTypeFromXmlRpc(productTypeHash);
         repositoryManager.addProductType(productType);
         return productType.getProductTypeId();
 
     }
 
     public synchronized boolean setProductTransferStatus(
-            Hashtable<String, Object> productHash)
+            Product product)
             throws CatalogException {
-        Product product = XmlRpcStructFactory.getProductFromXmlRpc(productHash);
         catalog.setProductTransferStatus(product);
         return true;
     }
 
-    public int getNumProducts(Hashtable<String, Object> productTypeHash)
+    public int getNumProducts(ProductType type)
             throws CatalogException {
         int numProducts = -1;
-
-        ProductType type = XmlRpcStructFactory
-                .getProductTypeFromXmlRpc(productTypeHash);
 
         try {
             numProducts = catalog.getNumProducts(type);
@@ -362,13 +265,13 @@ public class XmlRpcFileManager {
         return numProducts;
     }
 
-    public Vector<Hashtable<String, Object>> getTopNProducts(int n)
+    public List<Product> getTopNProducts(int n)
             throws CatalogException {
         List<Product> topNProducts = null;
 
         try {
             topNProducts = catalog.getTopNProducts(n);
-            return XmlRpcStructFactory.getXmlRpcProductList(topNProducts);
+            return topNProducts;
         } catch (Exception e) {
             e.printStackTrace();
             LOG.log(Level.WARNING,
@@ -378,16 +281,13 @@ public class XmlRpcFileManager {
         }
     }
 
-    public Vector<Hashtable<String, Object>> getTopNProducts(int n,
-            Hashtable<String, Object> productTypeHash)
+    public List<Product> getTopNProductsByProductType(int n,
+                                         ProductType type)
             throws CatalogException {
-        ProductType type = XmlRpcStructFactory
-                .getProductTypeFromXmlRpc(productTypeHash);
         List<Product> topNProducts = null;
-
         try {
             topNProducts = catalog.getTopNProducts(n, type);
-            return XmlRpcStructFactory.getXmlRpcProductList(topNProducts);
+            return topNProducts;
         } catch (Exception e) {
             e.printStackTrace();
             LOG.log(Level.WARNING,
@@ -405,27 +305,10 @@ public class XmlRpcFileManager {
                 && p.getTransferStatus().equals(Product.STATUS_RECEIVED);
     }
 
-    public Hashtable<String, Object> getMetadata(
-            Hashtable<String, Object> productHash) throws CatalogException {
-        Product product = XmlRpcStructFactory.getProductFromXmlRpc(productHash);
-        return this.getMetadata(product).getHashtable();
-    }
-
-    public Hashtable<String, Object> getReducedMetadata(
-            Hashtable<String, Object> productHash, Vector<String> elements)
-            throws CatalogException {
-        Product product = XmlRpcStructFactory.getProductFromXmlRpc(productHash);
-        return this.getReducedMetadata(product, elements).getHashtable();
-    }
-
-    public Vector<Hashtable<String, Object>> getProductTypes()
+    public List<ProductType>  getProductTypes()
             throws RepositoryManagerException {
-        List<ProductType> productTypeList = null;
-
         try {
-            productTypeList = repositoryManager.getProductTypes();
-            return XmlRpcStructFactory
-                    .getXmlRpcProductTypeList(productTypeList);
+            return repositoryManager.getProductTypes();
         } catch (RepositoryManagerException e) {
             e.printStackTrace();
             LOG.log(Level.SEVERE,
@@ -435,15 +318,11 @@ public class XmlRpcFileManager {
         }
     }
 
-    public Vector<Hashtable<String, Object>> getProductReferences(
-            Hashtable<String, Object> productHash)
+    public List<Reference> getProductReferences(
+            Product product)
             throws CatalogException {
-        List<Reference> referenceList = null;
-        Product product = XmlRpcStructFactory.getProductFromXmlRpc(productHash);
-
         try {
-            referenceList = catalog.getProductReferences(product);
-            return XmlRpcStructFactory.getXmlRpcReferences(referenceList);
+            return catalog.getProductReferences(product);
         } catch (CatalogException e) {
             e.printStackTrace();
             LOG.log(Level.SEVERE, "Unable to obtain references for product: ["
@@ -454,7 +333,7 @@ public class XmlRpcFileManager {
 
     }
 
-    public Hashtable<String, Object> getProductById(String productId)
+    public Product getProductById(String productId)
             throws CatalogException {
         Product product = null;
 
@@ -467,7 +346,7 @@ public class XmlRpcFileManager {
             product.setProductType(this.repositoryManager
                     .getProductTypeById(product.getProductType()
                             .getProductTypeId()));
-            return XmlRpcStructFactory.getXmlRpcProduct(product);
+            return product;
         } catch (CatalogException e) {
             e.printStackTrace();
             LOG.log(Level.SEVERE, "Unable to obtain product by id: ["
@@ -483,20 +362,20 @@ public class XmlRpcFileManager {
 
     }
 
-    public Hashtable<String, Object> getProductByName(String productName)
+    public Product getProductByName(String productName)
             throws CatalogException {
         Product product = null;
-
         try {
             product = catalog.getProductByName(productName);
             // it is possible here that the underlying catalog did not
             // set the ProductType
             // to obey the contract of the File Manager, we need to make
             // sure its set here
+
             product.setProductType(this.repositoryManager
                     .getProductTypeById(product.getProductType()
                             .getProductTypeId()));
-            return XmlRpcStructFactory.getXmlRpcProduct(product);
+            return product;
         } catch (CatalogException e) {
             e.printStackTrace();
             LOG.log(Level.SEVERE, "Unable to obtain product by name: ["
@@ -511,16 +390,13 @@ public class XmlRpcFileManager {
         }
     }
 
-    public Vector<Hashtable<String, Object>> getProductsByProductType(
-            Hashtable<String, Object> productTypeHash)
+    public List<Product> getProductsByProductType(
+            ProductType type)
             throws CatalogException {
-        ProductType type = XmlRpcStructFactory
-                .getProductTypeFromXmlRpc(productTypeHash);
-        List<Product> productList = null;
-
         try {
-            productList = catalog.getProductsByProductType(type);
-            return XmlRpcStructFactory.getXmlRpcProductList(productList);
+
+            return catalog.getProductsByProductType(type);
+
         } catch (Exception e) {
             e.printStackTrace();
             LOG.log(Level.SEVERE,
@@ -530,16 +406,11 @@ public class XmlRpcFileManager {
         }
     }
 
-    public Vector<Hashtable<String, Object>> getElementsByProductType(
-            Hashtable<String, Object> productTypeHash)
+    public List<Element> getElementsByProductType(
+            ProductType type)
             throws ValidationLayerException {
-        ProductType type = XmlRpcStructFactory
-                .getProductTypeFromXmlRpc(productTypeHash);
-        List<Element> elementList = null;
-
         try {
-            elementList = catalog.getValidationLayer().getElements(type);
-            return XmlRpcStructFactory.getXmlRpcElementList(elementList);
+            return catalog.getValidationLayer().getElements(type);
         } catch (Exception e) {
             e.printStackTrace();
             LOG.log(Level.SEVERE,
@@ -547,16 +418,12 @@ public class XmlRpcFileManager {
                             + type.getName() + "]: Message: " + e.getMessage());
             throw new ValidationLayerException(e.getMessage());
         }
-
     }
 
-    public Hashtable<String, Object> getElementById(String elementId)
+    public Element getElementById(String elementId)
             throws ValidationLayerException {
-        Element element = null;
-
         try {
-            element = catalog.getValidationLayer().getElementById(elementId);
-            return XmlRpcStructFactory.getXmlRpcElement(element);
+            return catalog.getValidationLayer().getElementById(elementId);
         } catch (Exception e) {
             e.printStackTrace();
             LOG.log(Level.SEVERE, "exception retrieving element by id: ["
@@ -565,14 +432,11 @@ public class XmlRpcFileManager {
         }
     }
 
-    public Hashtable<String, Object> getElementByName(String elementName)
+    public Element getElementByName(String elementName)
             throws ValidationLayerException {
-        Element element = null;
-
         try {
-            element = catalog.getValidationLayer()
+            return catalog.getValidationLayer()
                     .getElementByName(elementName);
-            return XmlRpcStructFactory.getXmlRpcElement(element);
         } catch (Exception e) {
             e.printStackTrace();
             LOG.log(Level.SEVERE, "exception retrieving element by name: ["
@@ -581,11 +445,9 @@ public class XmlRpcFileManager {
         }
     }
 
-    public Vector<Hashtable<String, Object>> complexQuery(
-            Hashtable<String, Object> complexQueryHash) throws CatalogException {
+    public List<QueryResult> complexQuery(
+            ComplexQuery complexQuery) throws CatalogException {
         try {
-            ComplexQuery complexQuery = XmlRpcStructFactory
-                    .getComplexQueryFromXmlRpc(complexQueryHash);
 
             // get ProductTypes
             List<ProductType> productTypes = null;
@@ -632,38 +494,24 @@ public class XmlRpcFileManager {
                 queryResults = sortQueryResultList(queryResults, complexQuery
                         .getSortByMetKey());
 
-            return XmlRpcStructFactory.getXmlRpcQueryResults(queryResults);
+            return queryResults;
         } catch (Exception e) {
             e.printStackTrace();
             throw new CatalogException("Failed to perform complex query : "
                     + e.getMessage());
         }
     }
-    
-    public Vector<Hashtable<String, Object>> query(
-            Hashtable<String, Object> queryHash,
-            Hashtable<String, Object> productTypeHash)
-            throws CatalogException {
-        Query query = XmlRpcStructFactory.getQueryFromXmlRpc(queryHash);
-        ProductType type = XmlRpcStructFactory
-                .getProductTypeFromXmlRpc(productTypeHash);
-        return XmlRpcStructFactory.getXmlRpcProductList(this.query(query, type));
-    }
 
-    public Hashtable<String, Object> getProductTypeByName(String productTypeName)
+    public ProductType getProductTypeByName(String productTypeName)
             throws RepositoryManagerException {
-        ProductType type = repositoryManager
-                .getProductTypeByName(productTypeName);
-        return XmlRpcStructFactory.getXmlRpcProductType(type);
+
+        ProductType pt = repositoryManager.getProductTypeByName(productTypeName);
+        return pt;
     }
-
-    public Hashtable<String, Object> getProductTypeById(String productTypeId)
+    public ProductType getProductTypeById(String productTypeId)
             throws RepositoryManagerException {
-        ProductType type = null;
-
         try {
-            type = repositoryManager.getProductTypeById(productTypeId);
-            return XmlRpcStructFactory.getXmlRpcProductType(type);
+            return repositoryManager.getProductTypeById(productTypeId);
         } catch (Exception e) {
             e.printStackTrace();
             LOG.log(Level.SEVERE,
@@ -672,141 +520,115 @@ public class XmlRpcFileManager {
             throw new RepositoryManagerException(e.getMessage());
         }
     }
-    
-    public synchronized boolean updateMetadata(Hashtable<String, Object> productHash, 
-        Hashtable<String, Object> metadataHash) throws CatalogException{
-        Product product = XmlRpcStructFactory.getProductFromXmlRpc(productHash);
-        Metadata met = new Metadata();
-        met.addMetadata(metadataHash);
+
+    public synchronized boolean updateMetadata(Product product,
+                                               Metadata met) throws CatalogException{
         Metadata oldMetadata = catalog.getMetadata(product);
         catalog.removeMetadata(oldMetadata, product);
         catalog.addMetadata(met, product);
         return true;
     }
 
-    public synchronized String catalogProduct(Hashtable<String, Object> productHash)
-            throws CatalogException {
-        Product p = XmlRpcStructFactory.getProductFromXmlRpc(productHash);
-        return catalogProduct(p);
-    }
-
-    public synchronized boolean addMetadata(Hashtable<String, Object> productHash,
-            Hashtable<String, String> metadata) throws CatalogException {
-        Product p = XmlRpcStructFactory.getProductFromXmlRpc(productHash);
-        Metadata m = new Metadata();
-        m.addMetadata((Hashtable)metadata);
-        return addMetadata(p, m) != null;
-    }
-
-    public synchronized boolean addProductReferences(Hashtable<String, Object> productHash)
-            throws CatalogException {
-        Product product = XmlRpcStructFactory.getProductFromXmlRpc(productHash);
-        return addProductReferences(product);
-    }
-
-    public String ingestProduct(Hashtable<String, Object> productHash,
-      Hashtable<String, String> metadata, boolean clientTransfer)
-      throws VersioningException, RepositoryManagerException,
-      DataTransferException, CatalogException {
-
-    Product p = XmlRpcStructFactory.getProductFromXmlRpc(productHash);
-
-    try {
-      // first, create the product
-      p.setTransferStatus(Product.STATUS_TRANSFER);
-      catalogProduct(p);
-
-      // now add the metadata
-      Metadata m = new Metadata();
-      m.addMetadata((Hashtable)metadata);
-      Metadata expandedMetdata = addMetadata(p, m);
-
-      // version the product
-      if (!clientTransfer || (clientTransfer
-          && Boolean.getBoolean("org.apache.oodt.cas.filemgr.serverside.versioning"))) {
-        Versioner versioner = null;
+    public String ingestProduct(Product p,
+                                Metadata m, boolean clientTransfer)
+            throws VersioningException, RepositoryManagerException,
+            DataTransferException, CatalogException {
         try {
-          versioner = GenericFileManagerObjectFactory
-              .getVersionerFromClassName(p.getProductType().getVersioner());
-          versioner.createDataStoreReferences(p, expandedMetdata);
+            // first, create the product
+            p.setTransferStatus(Product.STATUS_TRANSFER);
+            catalogProduct(p);
+
+            // now add the metadata
+            Metadata expandedMetdata = addMetadata(p, m);
+
+            // version the product
+            if (!clientTransfer || (clientTransfer
+                    && Boolean.getBoolean("org.apache.oodt.cas.filemgr.serverside.versioning"))) {
+                Versioner versioner = null;
+                try {
+                    versioner = GenericFileManagerObjectFactory
+                            .getVersionerFromClassName(p.getProductType().getVersioner());
+                    versioner.createDataStoreReferences(p, expandedMetdata);
+                } catch (Exception e) {
+                    LOG.log(Level.SEVERE,
+                            "ingestProduct: VersioningException when versioning Product: "
+                                    + p.getProductName() + " with Versioner "
+                                    + p.getProductType().getVersioner() + ": Message: "
+                                    + e.getMessage());
+                    throw new VersioningException(e);
+                }
+
+                // add the newly versioned references to the data store
+                addProductReferences(p);
+            }
+
+            if (!clientTransfer) {
+                LOG.log(Level.FINEST,
+                        "File Manager: ingest: no client transfer enabled, "
+                                + "server transfering product: [" + p.getProductName() + "]");
+
+                // now transfer the product
+                try {
+                    dataTransfer.transferProduct(p);
+                    // now update the product's transfer status in the data store
+                    p.setTransferStatus(Product.STATUS_RECEIVED);
+
+                    try {
+                        catalog.setProductTransferStatus(p);
+                    } catch (CatalogException e) {
+                        LOG.log(Level.SEVERE, "ingestProduct: CatalogException "
+                                + "when updating product transfer status for Product: "
+                                + p.getProductName() + " Message: " + e.getMessage());
+                        throw e;
+                    }
+                } catch (Exception e) {
+                    LOG.log(Level.SEVERE,
+                            "ingestProduct: DataTransferException when transfering Product: "
+                                    + p.getProductName() + ": Message: " + e.getMessage());
+                    throw new DataTransferException(e);
+                }
+            }
+
+
+            // that's it!
+            return p.getProductId();
+
         } catch (Exception e) {
-          LOG.log(Level.SEVERE,
-              "ingestProduct: VersioningException when versioning Product: "
-                  + p.getProductName() + " with Versioner "
-                  + p.getProductType().getVersioner() + ": Message: "
-                  + e.getMessage());
-          throw new VersioningException(e);
+            e.printStackTrace();
+            throw new CatalogException("Error ingesting product [" + p + "] : "
+                    + e.getMessage());
         }
 
-        // add the newly versioned references to the data store
-        addProductReferences(p);
-      }
-
-      if (!clientTransfer) {
-        LOG.log(Level.FINEST,
-              "File Manager: ingest: no client transfer enabled, "
-                  + "server transfering product: [" + p.getProductName() + "]");
-
-        // now transfer the product
-        try {
-          dataTransfer.transferProduct(p);
-          // now update the product's transfer status in the data store
-          p.setTransferStatus(Product.STATUS_RECEIVED);
-
-          try {
-            catalog.setProductTransferStatus(p);
-          } catch (CatalogException e) {
-            LOG.log(Level.SEVERE, "ingestProduct: CatalogException "
-                + "when updating product transfer status for Product: "
-                + p.getProductName() + " Message: " + e.getMessage());
-            throw e;
-          }
-        } catch (Exception e) {
-          LOG.log(Level.SEVERE,
-              "ingestProduct: DataTransferException when transfering Product: "
-                  + p.getProductName() + ": Message: " + e.getMessage());
-          throw new DataTransferException(e);
-        }
-      }
-
-      // that's it!
-      return p.getProductId();
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw new CatalogException("Error ingesting product [" + p + "] : "
-          + e.getMessage());
     }
 
-  }
+    public byte[] retrieveFile(String filePath, int offset, int numBytes)
+            throws DataTransferException {
+        FileInputStream is = null;
+        try {
+            byte[] fileData = new byte[numBytes];
+            (is = new FileInputStream(filePath)).skip(offset);
+            int bytesRead = is.read(fileData);
+            if (bytesRead != -1) {
+                byte[] fileDataTruncated = new byte[bytesRead];
+                System.arraycopy(fileData, 0, fileDataTruncated, 0, bytesRead);
+                return fileDataTruncated;
+            } else {
+                return new byte[0];
+            }
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Failed to read '" + numBytes
+                    + "' bytes from file '" + filePath + "' at index '" + offset
+                    + "' : " + e.getMessage(), e);
+            throw new DataTransferException("Failed to read '" + numBytes
+                    + "' bytes from file '" + filePath + "' at index '" + offset
+                    + "' : " + e.getMessage(), e);
+        } finally {
+            try { is.close(); } catch (Exception e) {}
+        }
+    }
 
-   public byte[] retrieveFile(String filePath, int offset, int numBytes)
-         throws DataTransferException {
-      FileInputStream is = null;
-      try {
-         byte[] fileData = new byte[numBytes];
-         (is = new FileInputStream(filePath)).skip(offset);
-         int bytesRead = is.read(fileData);
-         if (bytesRead != -1) {
-            byte[] fileDataTruncated = new byte[bytesRead];
-            System.arraycopy(fileData, 0, fileDataTruncated, 0, bytesRead);
-            return fileDataTruncated;
-         } else {
-            return new byte[0];
-         }
-      } catch (Exception e) {
-         LOG.log(Level.SEVERE, "Failed to read '" + numBytes
-               + "' bytes from file '" + filePath + "' at index '" + offset
-               + "' : " + e.getMessage(), e);
-         throw new DataTransferException("Failed to read '" + numBytes
-               + "' bytes from file '" + filePath + "' at index '" + offset
-               + "' : " + e.getMessage(), e);
-      } finally {
-         try { is.close(); } catch (Exception e) {}
-      }
-   }
-    
     public boolean transferFile(String filePath, byte[] fileData, int offset,
-            int numBytes) {
+                                int numBytes) {
         File outFile = new File(filePath);
         boolean success = true;
 
@@ -865,17 +687,15 @@ public class XmlRpcFileManager {
         return success;
     }
 
-    public boolean moveProduct(Hashtable<String, Object> productHash, String newPath)
+    public boolean moveProduct(Product p, String newPath)
             throws DataTransferException {
-
-        Product p = XmlRpcStructFactory.getProductFromXmlRpc(productHash);
 
         // first thing we care about is if the product is flat or heirarchical
         if (p.getProductStructure().equals(Product.STRUCTURE_FLAT)) {
             // we just need to get its first reference
             if (p.getProductReferences() == null
                     || (p.getProductReferences() != null && p
-                            .getProductReferences().size() != 1)) {
+                    .getProductReferences().size() != 1)) {
                 throw new DataTransferException(
                         "Flat products must have a single reference: cannot move");
             }
@@ -935,18 +755,16 @@ public class XmlRpcFileManager {
     }
 
     public boolean removeFile(String filePath) throws DataTransferException, IOException {
-      // TODO(bfoster): Clean this up so that it deletes by product not file.
-      Product product = new Product();
-      Reference r = new Reference();
-      r.setDataStoreReference(filePath);
-      product.setProductReferences(Lists.newArrayList(r));
-      dataTransfer.deleteProduct(product);
-      return true;
+        // TODO(bfoster): Clean this up so that it deletes by product not file.
+        Product product = new Product();
+        Reference r = new Reference();
+        r.setDataStoreReference(filePath);
+        product.setProductReferences(Lists.newArrayList(r));
+        dataTransfer.deleteProduct(product);
+        return true;
     }
 
-    public boolean modifyProduct(Hashtable<?, ?> productHash) throws CatalogException {
-        Product p = XmlRpcStructFactory.getProductFromXmlRpc(productHash);
-
+    public boolean modifyProduct(Product p) throws CatalogException {
         try {
             catalog.modifyProduct(p);
         } catch (CatalogException e) {
@@ -958,9 +776,7 @@ public class XmlRpcFileManager {
         return true;
     }
 
-    public boolean removeProduct(Hashtable<String, Object> productHash) throws CatalogException {
-        Product p = XmlRpcStructFactory.getProductFromXmlRpc(productHash);
-
+    public boolean removeProduct(Product p) throws CatalogException {
         try {
             catalog.removeProduct(p);
         } catch (CatalogException e) {
@@ -971,71 +787,8 @@ public class XmlRpcFileManager {
 
         return true;
     }
-    
-    public Hashtable<String, Object> getCatalogValues(
-            Hashtable<String, Object> metadataHash,
-            Hashtable<String, Object> productTypeHash)
-            throws RepositoryManagerException {
-        Metadata m = new Metadata();
-        m.addMetadata(metadataHash);
-        ProductType productType = XmlRpcStructFactory.getProductTypeFromXmlRpc(productTypeHash);
-        return this.getCatalogValues(m, productType).getHashtable();
-    }
-    
-    public Hashtable<String, Object> getOrigValues(
-            Hashtable<String, Object> metadataHash,
-            Hashtable<String, Object> productTypeHash)
-            throws RepositoryManagerException {
-        Metadata m = new Metadata();
-        m.addMetadata(metadataHash);
-        ProductType productType = XmlRpcStructFactory.getProductTypeFromXmlRpc(productTypeHash);
-        return this.getOrigValues(m, productType).getHashtable();
-    }
-    
-    public Hashtable<String, Object> getCatalogQuery(
-            Hashtable<String, Object> queryHash,
-            Hashtable<String, Object> productTypeHash)
-            throws RepositoryManagerException, QueryFormulationException {
-        Query query = XmlRpcStructFactory.getQueryFromXmlRpc(queryHash);
-        ProductType productType = XmlRpcStructFactory.getProductTypeFromXmlRpc(productTypeHash);
-        return XmlRpcStructFactory.getXmlRpcQuery(this.getCatalogQuery(query, productType));
-    }
 
-    public static void main(String[] args) throws Exception {
-        int portNum = -1;
-        String usage = "FileManager --portNum <port number for xml rpc service>\n";
-
-        for (int i = 0; i < args.length; i++) {
-            if (args[i].equals("--portNum")) {
-                portNum = Integer.parseInt(args[++i]);
-            }
-        }
-
-        if (portNum == -1) {
-            System.err.println(usage);
-            System.exit(1);
-        }
-        
-        @SuppressWarnings("unused")
-        XmlRpcFileManager manager = new XmlRpcFileManager(portNum);
-
-        for (;;)
-            try {
-                Thread.currentThread().join();
-            } catch (InterruptedException ignore) {
-            }
-    }
-
-    public boolean shutdown() {
-        if (this.webServer != null) {
-            this.webServer.shutdown();
-            this.webServer = null;
-            return true;
-        } else
-            return false;
-    }
-
-    private synchronized String catalogProduct(Product p)
+    public synchronized String catalogProduct(Product p)
             throws CatalogException {
         try {
             catalog.addProduct(p);
@@ -1050,9 +803,9 @@ public class XmlRpcFileManager {
         return p.getProductId();
     }
 
-    private synchronized Metadata addMetadata(Product p, Metadata m)
+    public synchronized Metadata addMetadata(Product p, Metadata m)
             throws CatalogException {
-        
+
         //apply handlers
         try {
             m = this.getCatalogValues(m, p.getProductType());
@@ -1060,7 +813,7 @@ public class XmlRpcFileManager {
             LOG.log(Level.SEVERE, "Failed to get handlers for product '" + p
                     + "' : " + e.getMessage());
         }
-        
+
         // first do server side metadata extraction
         Metadata metadata = runExtractors(p, m);
 
@@ -1091,7 +844,7 @@ public class XmlRpcFileManager {
                     .getProductType().getProductTypeId()));
         } catch (RepositoryManagerException e) {
             LOG.log(Level.SEVERE, "Failed to load ProductType " + product
-              .getProductType().getProductTypeId(), e);
+                    .getProductType().getProductTypeId(), e);
             return null;
         }
 
@@ -1123,7 +876,7 @@ public class XmlRpcFileManager {
         return met;
     }
 
-    private synchronized boolean addProductReferences(Product product)
+    public synchronized boolean addProductReferences(Product product)
             throws CatalogException {
         catalog.addProductReferences(product);
         return true;
@@ -1142,12 +895,12 @@ public class XmlRpcFileManager {
             }
         }
     }
-    
-    private List<Product> query(Query query, ProductType productType) throws CatalogException {
+
+    public List<Product> query(Query query, ProductType productType) throws CatalogException {
         List<String> productIdList = null;
         List<Product> productList = null;
 
-        try {            
+        try {
             productIdList = catalog.query(this.getCatalogQuery(query, productType), productType);
 
             if (productIdList != null && productIdList.size() > 0) {
@@ -1176,8 +929,8 @@ public class XmlRpcFileManager {
             throw new CatalogException(e.getMessage());
         }
     }
-    
-    private Metadata getReducedMetadata(Product product, List<String> elements) throws CatalogException {
+
+    public Metadata getReducedMetadata(Product product, List<String> elements) throws CatalogException {
         try {
             Metadata m = null;
             if (elements != null && elements.size() > 0) {
@@ -1185,7 +938,7 @@ public class XmlRpcFileManager {
             }else {
                 m = this.getMetadata(product);
             }
-            if(this.expandProductMet) m = this.buildProductMetadata(product, m);            
+            if(this.expandProductMet) m = this.buildProductMetadata(product, m);
             return this.getOrigValues(m, product.getProductType());
         } catch (Exception e) {
             e.printStackTrace();
@@ -1196,8 +949,8 @@ public class XmlRpcFileManager {
             throw new CatalogException(e.getMessage());
         }
     }
-    
-    private Metadata getMetadata(Product product) throws CatalogException {
+
+    public Metadata getMetadata(Product product) throws CatalogException {
         try {
             Metadata m = catalog.getMetadata(product);
             if(this.expandProductMet) m = this.buildProductMetadata(product, m);
@@ -1211,8 +964,8 @@ public class XmlRpcFileManager {
             throw new CatalogException(e.getMessage());
         }
     }
-    
-    private Metadata getOrigValues(Metadata metadata, ProductType productType) 
+
+    public Metadata getOrigValues(Metadata metadata, ProductType productType)
             throws RepositoryManagerException {
         List<TypeHandler> handlers = this.repositoryManager.getProductTypeById(
                 productType.getProductTypeId()).getHandlers();
@@ -1223,8 +976,8 @@ public class XmlRpcFileManager {
         }
         return metadata;
     }
-    
-    private Metadata getCatalogValues(Metadata metadata, ProductType productType) 
+
+    public Metadata getCatalogValues(Metadata metadata, ProductType productType)
             throws RepositoryManagerException {
         List<TypeHandler> handlers = this.repositoryManager.getProductTypeById(
                 productType.getProductTypeId()).getHandlers();
@@ -1235,8 +988,8 @@ public class XmlRpcFileManager {
         }
         return metadata;
     }
-    
-    private Query getCatalogQuery(Query query, ProductType productType)
+
+    public Query getCatalogQuery(Query query, ProductType productType)
             throws RepositoryManagerException, QueryFormulationException {
         List<TypeHandler> handlers = this.repositoryManager.getProductTypeById(
                 productType.getProductTypeId()).getHandlers();
@@ -1256,19 +1009,19 @@ public class XmlRpcFileManager {
         for (QueryResult queryResult : queryResults) {
             Metadata m = new Metadata();
             m.addMetadata(queryFilter.getPriorityMetKey(), queryResult
-                .getMetadata().getMetadata(queryFilter.getPriorityMetKey()));
+                    .getMetadata().getMetadata(queryFilter.getPriorityMetKey()));
             events.add(new ObjectTimeEvent<QueryResult>(
-                DateUtils.getTimeInMillis(DateUtils.toCalendar(queryResult
-                    .getMetadata().getMetadata(queryFilter.getStartDateTimeMetKey()),
-                    DateUtils.FormatType.UTC_FORMAT), DateUtils.julianEpoch), 
-                DateUtils.getTimeInMillis(DateUtils.toCalendar(queryResult.getMetadata()
-                    .getMetadata(queryFilter.getEndDateTimeMetKey()),
-                    DateUtils.FormatType.UTC_FORMAT),
-                DateUtils.julianEpoch), queryFilter.getConverter()
+                    DateUtils.getTimeInMillis(DateUtils.toCalendar(queryResult
+                            .getMetadata().getMetadata(queryFilter.getStartDateTimeMetKey()),
+                            DateUtils.FormatType.UTC_FORMAT), DateUtils.julianEpoch),
+                    DateUtils.getTimeInMillis(DateUtils.toCalendar(queryResult.getMetadata()
+                            .getMetadata(queryFilter.getEndDateTimeMetKey()),
+                            DateUtils.FormatType.UTC_FORMAT),
+                            DateUtils.julianEpoch), queryFilter.getConverter()
                     .convertToPriority(this.getCatalogValues(m,
-                    queryResult.getProduct().getProductType())
-                    .getMetadata(queryFilter.getPriorityMetKey())),
-                queryResult));
+                            queryResult.getProduct().getProductType())
+                            .getMetadata(queryFilter.getPriorityMetKey())),
+                    queryResult));
         }
         events = queryFilter.getFilterAlgor().filterEvents(events);
         List<QueryResult> filteredQueryResults = new LinkedList<QueryResult>();
@@ -1280,90 +1033,89 @@ public class XmlRpcFileManager {
     }
 
     private List<QueryResult> sortQueryResultList(List<QueryResult> queryResults,
-      String sortByMetKey) {
-    QueryResult[] resultsArray = queryResults
-        .toArray(new QueryResult[queryResults.size()]);
-    QueryResultComparator qrComparator = new QueryResultComparator();
-    qrComparator.setSortByMetKey(sortByMetKey);
-    Arrays.sort(resultsArray, qrComparator);
-    return Arrays.asList(resultsArray);
-  }
+                                                  String sortByMetKey) {
+        QueryResult[] resultsArray = queryResults
+                .toArray(new QueryResult[queryResults.size()]);
+        QueryResultComparator qrComparator = new QueryResultComparator();
+        qrComparator.setSortByMetKey(sortByMetKey);
+        Arrays.sort(resultsArray, qrComparator);
+        return Arrays.asList(resultsArray);
+    }
 
     private Metadata buildProductMetadata(Product product, Metadata metadata)
-      throws CatalogException {
-    Metadata pMet = new Metadata();
-    pMet.replaceMetadata(ProductMetKeys.PRODUCT_ID, product.getProductId() != null ? 
-        product.getProductId():"unknown");
-    pMet.replaceMetadata(ProductMetKeys.PRODUCT_NAME, product.getProductName() != null ? 
-        product.getProductName():"unknown");
-    pMet.replaceMetadata(ProductMetKeys.PRODUCT_STRUCTURE, product
-        .getProductStructure() != null ? product.getProductStructure():"unknown");
-    pMet.replaceMetadata(ProductMetKeys.PRODUCT_TRANSFER_STATUS, product
-        .getTransferStatus() != null ? product.getTransferStatus():"unknown");
-    pMet.replaceMetadata(ProductMetKeys.PRODUCT_ROOT_REFERENCE, product.getRootRef() != null ? 
-        VersioningUtils
-        .getAbsolutePathFromUri(product.getRootRef().getDataStoreReference()):"unknown");
+            throws CatalogException {
+        Metadata pMet = new Metadata();
+        pMet.replaceMetadata(ProductMetKeys.PRODUCT_ID, product.getProductId() != null ?
+                product.getProductId():"unknown");
+        pMet.replaceMetadata(ProductMetKeys.PRODUCT_NAME, product.getProductName() != null ?
+                product.getProductName():"unknown");
+        pMet.replaceMetadata(ProductMetKeys.PRODUCT_STRUCTURE, product
+                .getProductStructure() != null ? product.getProductStructure():"unknown");
+        pMet.replaceMetadata(ProductMetKeys.PRODUCT_TRANSFER_STATUS, product
+                .getTransferStatus() != null ? product.getTransferStatus():"unknown");
+        pMet.replaceMetadata(ProductMetKeys.PRODUCT_ROOT_REFERENCE, product.getRootRef() != null ?
+                VersioningUtils
+                        .getAbsolutePathFromUri(product.getRootRef().getDataStoreReference()):"unknown");
 
-    List<Reference> refs = product.getProductReferences();
+        List<Reference> refs = product.getProductReferences();
 
-    if (refs == null || (refs != null && refs.size() == 0)) {
-      refs = this.catalog.getProductReferences(product);
+        if (refs == null || (refs != null && refs.size() == 0)) {
+            refs = this.catalog.getProductReferences(product);
+        }
+
+        for (Reference r : refs) {
+            pMet.replaceMetadata(ProductMetKeys.PRODUCT_ORIG_REFS, r.getOrigReference() != null
+                    ? VersioningUtils
+                    .getAbsolutePathFromUri(r.getOrigReference()):"unknown");
+            pMet.replaceMetadata(ProductMetKeys.PRODUCT_DATASTORE_REFS,
+                    r.getDataStoreReference() != null ?
+                            VersioningUtils.getAbsolutePathFromUri(r.getDataStoreReference()):"unknown");
+            pMet.replaceMetadata(ProductMetKeys.PRODUCT_FILE_SIZES, String.valueOf(r
+                    .getFileSize()));
+            pMet.replaceMetadata(ProductMetKeys.PRODUCT_MIME_TYPES,
+                    r.getMimeType() != null ? r.getMimeType().getName() : "unknown");
+        }
+
+        return pMet;
     }
 
-    for (Reference r : refs) {
-      pMet.replaceMetadata(ProductMetKeys.PRODUCT_ORIG_REFS, r.getOrigReference() != null
-          ? VersioningUtils
-          .getAbsolutePathFromUri(r.getOrigReference()):"unknown");
-      pMet.replaceMetadata(ProductMetKeys.PRODUCT_DATASTORE_REFS,
-          r.getDataStoreReference() != null ? 
-              VersioningUtils.getAbsolutePathFromUri(r.getDataStoreReference()):"unknown");
-      pMet.replaceMetadata(ProductMetKeys.PRODUCT_FILE_SIZES, String.valueOf(r
-          .getFileSize()));
-      pMet.replaceMetadata(ProductMetKeys.PRODUCT_MIME_TYPES,
-          r.getMimeType() != null ? r.getMimeType().getName() : "unknown");
+    public void loadConfiguration() throws FileNotFoundException, IOException {
+        // set up the configuration, if there is any
+        if (System.getProperty("org.apache.oodt.cas.filemgr.properties") != null) {
+            String configFile = System
+                    .getProperty("org.apache.oodt.cas.filemgr.properties");
+            LOG.log(Level.INFO,
+                    "Loading File Manager Configuration Properties from: [" + configFile
+                            + "]");
+            System.getProperties().load(new FileInputStream(new File(configFile)));
+        }
+
+        String metaFactory = null, dataFactory = null;
+
+        metaFactory = System.getProperty("filemgr.catalog.factory",
+                "org.apache.oodt.cas.filemgr.catalog.DataSourceCatalogFactory");
+        dataFactory = System
+                .getProperty("filemgr.repository.factory",
+                        "org.apache.oodt.cas.filemgr.repository.DataSourceRepositoryManagerFactory");
+
+        catalog = GenericFileManagerObjectFactory
+                .getCatalogServiceFromFactory(metaFactory);
+        repositoryManager = GenericFileManagerObjectFactory
+                .getRepositoryManagerServiceFromFactory(dataFactory);
+
+
+        transferStatusTracker = new TransferStatusTracker(catalog);
+
+        // got to start the server before setting up the transfer client since
+        // it
+        // checks for a live server
+
+        expandProductMet = Boolean
+                .getBoolean("org.apache.oodt.cas.filemgr.metadata.expandProduct");
     }
 
-    return pMet;
-  }
-    
-    private void loadConfiguration() throws FileNotFoundException, IOException {
-    // set up the configuration, if there is any
-    if (System.getProperty("org.apache.oodt.cas.filemgr.properties") != null) {
-      String configFile = System
-          .getProperty("org.apache.oodt.cas.filemgr.properties");
-      LOG.log(Level.INFO,
-          "Loading File Manager Configuration Properties from: [" + configFile
-              + "]");
-      System.getProperties().load(new FileInputStream(new File(configFile)));
+    public void setDataTransfer(DataTransfer dataTransfer){
+        this.dataTransfer = dataTransfer;
     }
-
-    String metaFactory = null, dataFactory = null, transferFactory = null;
-
-    metaFactory = System.getProperty("filemgr.catalog.factory",
-        "org.apache.oodt.cas.filemgr.catalog.DataSourceCatalogFactory");
-    dataFactory = System
-        .getProperty("filemgr.repository.factory",
-            "org.apache.oodt.cas.filemgr.repository.DataSourceRepositoryManagerFactory");
-    transferFactory = System.getProperty("filemgr.datatransfer.factory",
-        "org.apache.oodt.cas.filemgr.datatransfer.LocalDataTransferFactory");
-
-    catalog = GenericFileManagerObjectFactory
-        .getCatalogServiceFromFactory(metaFactory);
-    repositoryManager = GenericFileManagerObjectFactory
-        .getRepositoryManagerServiceFromFactory(dataFactory);
-    dataTransfer = GenericFileManagerObjectFactory
-        .getDataTransferServiceFromFactory(transferFactory);
-
-    transferStatusTracker = new TransferStatusTracker(catalog);
-
-    // got to start the server before setting up the transfer client since
-    // it
-    // checks for a live server
-    dataTransfer
-        .setFileManagerUrl(new URL("http://localhost:" + webServerPort));
-
-    expandProductMet = Boolean
-        .getBoolean("org.apache.oodt.cas.filemgr.metadata.expandProduct");
-  }
 
 }

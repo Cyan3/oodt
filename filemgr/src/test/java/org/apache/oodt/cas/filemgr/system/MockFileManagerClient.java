@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 //OODT imports
+import org.apache.oodt.cas.filemgr.cli.action.DummyFileManagerClient;
 import org.apache.oodt.cas.filemgr.structs.FileTransferStatus;
 import org.apache.oodt.cas.filemgr.structs.Product;
 import org.apache.oodt.cas.filemgr.structs.ProductPage;
@@ -39,15 +40,16 @@ import org.apache.oodt.cas.metadata.Metadata;
 import com.google.common.collect.Lists;
 
 /**
- * A Mock {@link XmlRpcFileManagerClient}.
+ * A Mock {@link FileManagerClient}.
  *
  * @author bfoster (Brian Foster)
+ * changed by Radu Manole
  */
-public class MockXmlRpcFileManagerClient extends XmlRpcFileManagerClient {
+public class MockFileManagerClient extends DummyFileManagerClient {
 
    private MethodCallDetails lastMethodCallDetails;
 
-   public MockXmlRpcFileManagerClient() throws ConnectionException,
+   public MockFileManagerClient() throws ConnectionException,
          MalformedURLException {
       super(new URL("http://localhost:9000"), false);
    }

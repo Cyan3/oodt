@@ -25,6 +25,7 @@ import org.apache.oodt.cas.filemgr.structs.Product;
 import org.apache.oodt.cas.filemgr.structs.ProductType;
 import org.apache.oodt.cas.filemgr.structs.query.ComplexQuery;
 import org.apache.oodt.cas.filemgr.structs.query.QueryResult;
+import org.apache.oodt.cas.filemgr.util.RpcCommunicationFactory;
 import org.apache.oodt.cas.filemgr.util.SqlParser;
 import org.apache.oodt.cas.metadata.Metadata;
 import org.apache.oodt.cas.metadata.SerializableMetadata;
@@ -50,11 +51,11 @@ import junit.framework.TestCase;
  * Test suite for the {@link XmlRpcFileManagerClient}
  * </p>.
  */
-public class TestXmlRpcFileManagerClient extends TestCase {
+public class TestRpcFileManagerClient extends TestCase {
 
-    private static final int FM_PORT = 50001;
+    private static int FM_PORT = 50001;
 
-    private XmlRpcFileManager fm;
+    private FileManagerServer fm;
     
     private String luceneCatLoc;
 
@@ -64,7 +65,7 @@ public class TestXmlRpcFileManagerClient extends TestCase {
     private Properties initialProperties = new Properties(
       System.getProperties());
 
-    public TestXmlRpcFileManagerClient() {
+    public TestRpcFileManagerClient() {
     }
 
     
@@ -82,14 +83,14 @@ public class TestXmlRpcFileManagerClient extends TestCase {
         linkedListElemList.add(CoreMetKeys.FILENAME);
 
         try {
-            XmlRpcFileManagerClient fmc = new XmlRpcFileManagerClient(new URL(
+            FileManagerClient fmc = RpcCommunicationFactory.createClient(new URL(
                     "http://localhost:" + FM_PORT));
-            
             Metadata reducedMet = null;
             List pTypes = fmc.getProductTypes();
             assertNotNull(pTypes);
             assertTrue(pTypes.size() > 0);
             ProductType genericFileType = fmc.getProductTypeByName("GenericFile");
+
             assertNotNull(genericFileType);
             List products = fmc.getProductsByProductType(genericFileType);
             assertNotNull(products);
@@ -113,9 +114,11 @@ public class TestXmlRpcFileManagerClient extends TestCase {
             assertEquals(reducedMet.getHashtable().keySet().size(), 1);
             
         } catch (Exception e) {
+            e.printStackTrace();
             fail(e.getMessage());
         }finally {
             fm.shutdown();
+
         }
 
     }
@@ -135,7 +138,7 @@ public class TestXmlRpcFileManagerClient extends TestCase {
         String productId = ingester.ingest(
           new URL("http://localhost:" + FM_PORT),
           new File(refUrl.getFile()), prodMet);
-        XmlRpcFileManagerClient fmc = new XmlRpcFileManagerClient(new URL(
+        FileManagerClient fmc = RpcCommunicationFactory.createClient(new URL(
                 "http://localhost:" + FM_PORT));
         Metadata m = fmc.getMetadata(fmc.getProductById(productId));
         assertEquals(m.getMetadata("Filename"), "test.txt");
@@ -161,9 +164,8 @@ public class TestXmlRpcFileManagerClient extends TestCase {
         String productId = ingester.ingest(
             new URL("http://localhost:" + FM_PORT),
             new File(refUrl.getFile()), prodMet);
-        XmlRpcFileManagerClient fmc = new XmlRpcFileManagerClient(new URL(
+        FileManagerClient fmc = RpcCommunicationFactory.createClient(new URL(
                 "http://localhost:" + FM_PORT));
-             
         Metadata m = fmc.getMetadata(fmc.getProductById(productId));
         assertEquals(m.getAllMetadata("TestElement").size(), 4);
         assertEquals(m.getMetadata("TestElement"), "fe");
@@ -204,7 +206,7 @@ public class TestXmlRpcFileManagerClient extends TestCase {
         complexQuery.setSortByMetKey(CoreMetKeys.FILENAME);
         complexQuery.setToStringResultFormat("$" + CoreMetKeys.FILENAME);
         complexQuery.addCriterion(SqlParser.parseSqlWhereClause("Filename != 'test.txt'"));
-        XmlRpcFileManagerClient fmc = new XmlRpcFileManagerClient(new URL(
+        FileManagerClient fmc = RpcCommunicationFactory.createClient(new URL(
                 "http://localhost:" + FM_PORT));
         List<QueryResult> queryResults = fmc.complexQuery(complexQuery);
         assertEquals("[test-file-1.txt, test-file-2.txt]", queryResults.toString());
@@ -216,7 +218,8 @@ public class TestXmlRpcFileManagerClient extends TestCase {
      * @see junit.framework.TestCase#setUp()
      */
     protected void setUp() throws Exception {
-        startXmlRpcFileManager();
+        FM_PORT++;
+        startFileManager();
         ingestTestFile();
     }
 
@@ -273,11 +276,13 @@ public class TestXmlRpcFileManagerClient extends TestCase {
             ingester.ingest(new URL("http://localhost:" + FM_PORT), new File(
                 refUrl.getFile()), prodMet);
         } catch (Exception e) {
+            e.printStackTrace();
             fail(e.getMessage());
         }
     }
 
-    private void startXmlRpcFileManager() {
+
+    private void startFileManager() {
 
         Properties properties = new Properties(System.getProperties());
 
@@ -338,7 +343,8 @@ public class TestXmlRpcFileManagerClient extends TestCase {
         System.setProperties(properties);
 
         try {
-            fm = new XmlRpcFileManager(FM_PORT);
+            fm = RpcCommunicationFactory.createServer(FM_PORT);
+            fm.startUp();
         } catch (Exception e) {
             fail(e.getMessage());
         }

@@ -30,6 +30,7 @@ import org.apache.oodt.cas.filemgr.metadata.CoreMetKeys;
 import org.apache.oodt.cas.filemgr.metadata.ProductMetKeys;
 import org.apache.oodt.cas.filemgr.structs.Product;
 import org.apache.oodt.cas.filemgr.structs.exceptions.CatalogException;
+import org.apache.oodt.cas.filemgr.util.RpcCommunicationFactory;
 import org.apache.oodt.cas.metadata.Metadata;
 import org.apache.oodt.cas.metadata.SerializableMetadata;
 
@@ -38,16 +39,16 @@ import junit.framework.TestCase;
 
 /**
  * 
- * Test harness for the XmlRpcFileManager.
+ * Test harness for the XmlRpcFileManagerServer.
  * 
  * @since OODT-72
  * 
  */
-public class TestXmlRpcFileManager extends TestCase {
+public class TestRpcFileManager extends TestCase {
 
-  private static final int FM_PORT = 50001;
+  private static final int FM_PORT = 50002;
 
-  private XmlRpcFileManager fm;
+  private FileManagerServer fm;
 
   private String luceneCatLoc;
 
@@ -61,9 +62,9 @@ public class TestXmlRpcFileManager extends TestCase {
    * @since OODT-72
    */
   public void testExpandProductMet() {
-    XmlRpcFileManagerClient fmc = null;
+    FileManagerClient fmc = null;
     try {
-      fmc = new XmlRpcFileManagerClient(new URL("http://localhost:" + FM_PORT));
+      fmc = RpcCommunicationFactory.createClient(new URL("http://localhost:" + FM_PORT));
     } catch (Exception e) {
       fail(e.getMessage());
     }
@@ -218,15 +219,13 @@ public class TestXmlRpcFileManager extends TestCase {
 
       prodMet = new SerializableMetadata(new FileInputStream(
         new File(metUrl.getFile())));
-
       // now add the right file location
-      prodMet.addMetadata(CoreMetKeys.FILE_LOCATION, new File(
-        ingestUrl.getFile()).getCanonicalPath());
+      prodMet.addMetadata(CoreMetKeys.FILE_LOCATION, new File(ingestUrl.getFile()).getCanonicalPath());
       prodMet.addMetadata(CoreMetKeys.FILENAME, "test.txt");
       prodMet.addMetadata(CoreMetKeys.PRODUCT_TYPE, "GenericFile");
-      ingester.ingest(new URL("http://localhost:" + FM_PORT), new File(
-        refUrl.getFile()), prodMet);
+      ingester.ingest(new URL("http://localhost:" + FM_PORT), new File(refUrl.getFile()), prodMet);
     } catch (Exception e) {
+      e.printStackTrace();
       fail(e.getMessage());
     }
   }
@@ -292,7 +291,8 @@ public class TestXmlRpcFileManager extends TestCase {
     System.setProperties(properties);
 
     try {
-      fm = new XmlRpcFileManager(FM_PORT);
+      fm = RpcCommunicationFactory.createServer(FM_PORT);
+      fm.startUp();
     } catch (Exception e) {
       fail(e.getMessage());
     }
