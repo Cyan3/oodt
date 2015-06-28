@@ -144,7 +144,7 @@ public class TestRmiCache extends TestCase {
         Product prod = null;
         try {
             prod = XmlRpcStructFactory.getProductFromXmlRpc(fm
-                    .getProductByName("test.txt"));
+                    .xmlrpc_getProductByName("test.txt"));
         } catch (CatalogException e) {
             fail(e.getMessage());
         }

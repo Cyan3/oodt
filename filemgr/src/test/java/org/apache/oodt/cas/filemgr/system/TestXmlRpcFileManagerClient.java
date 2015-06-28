@@ -52,7 +52,7 @@ import junit.framework.TestCase;
  */
 public class TestXmlRpcFileManagerClient extends TestCase {
 
-    private static final int FM_PORT = 50001;
+    private static int FM_PORT = 50001;
 
     private XmlRpcFileManager fm;
     
@@ -116,6 +116,7 @@ public class TestXmlRpcFileManagerClient extends TestCase {
             fail(e.getMessage());
         }finally {
             fm.shutdown();
+
         }
 
     }
@@ -216,6 +217,7 @@ public class TestXmlRpcFileManagerClient extends TestCase {
      * @see junit.framework.TestCase#setUp()
      */
     protected void setUp() throws Exception {
+        FM_PORT++;
         startXmlRpcFileManager();
         ingestTestFile();
     }
@@ -276,6 +278,7 @@ public class TestXmlRpcFileManagerClient extends TestCase {
             fail(e.getMessage());
         }
     }
+
 
     private void startXmlRpcFileManager() {
 
