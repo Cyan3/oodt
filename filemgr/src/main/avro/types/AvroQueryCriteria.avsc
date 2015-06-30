@@ -1,0 +1,10 @@
+{
+    "type":"record",
+    "name":"AvroQueryCriteria",
+    "default":null,
+    "namespace":"org.apache.oodt.cas.filemgr.structs.avrotypes",
+    "imports":[],
+    "fields":[
+         {"name":"elementName","type":["null","string"],"default":null}
+    ]
+}

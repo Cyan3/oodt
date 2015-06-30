@@ -272,7 +272,7 @@ public class XmlRpcFileManager extends FileManager {
             throws ValidationLayerException {
             return XmlRpcStructFactory.getXmlRpcElement(this.getElementByName(elementName));
     }
-
+    //greseala
     public Vector<Hashtable<String, Object>> xmrrpc_complexQuery(
             Hashtable<String, Object> complexQueryHash) throws CatalogException {
             ComplexQuery complexQuery = XmlRpcStructFactory

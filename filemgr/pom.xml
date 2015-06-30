@@ -57,10 +57,65 @@
         <includes>
           <include>**/*</include>
         </includes>
-        <!--targetPath>${project.basedir}/target/classes/</targetPath-->
+        <!--targetPath>${projbytesTransferredect.basedir}/target/classes/</targetPath-->
       </testResource>
     </testResources>
     <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+      </plugin>
+      <plugin>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro-maven-plugin</artifactId>
+            <version>1.7.7</version>
+            <configuration>
+                <stringType>String</stringType>
+              <detail>true</detail>
+            </configuration>
+            <executions>
+              <execution>
+                <id>schemas</id>
+                <configuration>
+                  <imports>
+                    <import>${basedir}/src/main/avro/types/AvroMimeType.avsc</import>
+                    <import>${basedir}/src/main/avro/types/AvroReference.avsc</import>
+                    <import>${basedir}/src/main/avro/types/AvroExtractorSpec.avsc</import>
+                    <import>${basedir}/src/main/avro/types/AvroMetadata.avsc</import>
+                    <import>${basedir}/src/main/avro/types/AvroTypeHandler.avsc</import>
+                    <import>${basedir}/src/main/avro/types/AvroProductType.avsc</import>
+                    <import>${basedir}/src/main/avro/types/AvroProduct.avsc</import>
+                    <import>${basedir}/src/main/avro/types/AvroFileTransferStatus.avsc</import>
+                    <import>${basedir}/src/main/avro/types/AvroQueryCriteria.avsc</import>
+                    <import>${basedir}/src/main/avro/types/AvroQuery.avsc</import>
+                    <import>${basedir}/src/main/avro/types/AvroProductPage.avsc</import>
+                    <import>${basedir}/src/main/avro/types/AvroElement.avsc</import>
+                    <import>${basedir}/src/main/avro/types/AvroQueryResult.avsc</import>
+                    <import>${basedir}/src/main/avro/types/AvroFilterAlgor.avsc</import>
+                    <import>${basedir}/src/main/avro/types/AvroQueryFilter.avsc</import>
+                    <import>${basedir}/src/main/avro/types/AvroComplex.avsc</import>
+                  </imports>
+                </configuration>
+                <goals>
+                  <goal>schema</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>protocol</id>
+                <configuration><imports>
+                  <import>${basedir}/src/main/avro/types</import>
+
+                </imports>
+                </configuration>
+                <goals>
+                <goal>idl-protocol</goal>
+              </goals>
+              </execution>
+            </executions>
+          </plugin>
+
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <groupId>org.apache.maven.plugins</groupId>
@@ -150,6 +205,16 @@
     </repository>
   </repositories>
   <dependencies>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <version>1.7.7</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro-ipc</artifactId>
+      <version>1.7.7</version>
+    </dependency>
     <dependency>
     <groupId>org.apache.tika</groupId>
       <artifactId>tika-parsers</artifactId>
