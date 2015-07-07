@@ -3,6 +3,6 @@
   "name": "AvroMimeType",
   "namespace": "org.apache.oodt.cas.filemgr.structs.avrotypes",
   "fields": [
-    {"name":"typeName","type":"string"}
+    {"name":"typeName","type":["null","string"]}
   ]
 }

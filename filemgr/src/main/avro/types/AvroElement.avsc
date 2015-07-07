@@ -5,9 +5,9 @@
     "namespace":"org.apache.oodt.cas.filemgr.structs.avrotypes",
     "imports":[],
     "fields":[
-        {"name":"elementId","type":["null","string"],"default":null},
-        {"name":"elementName","type":["null","string"],"default":null},
-        {"name":"dcElement","type":["null","string"],"default":null},
-        {"name":"description","type":["null","string"],"default":null}
+        {"name":"elementId","type":["null","string"]},
+        {"name":"elementName","type":["null","string"]},
+        {"name":"dcElement","type":["null","string"]},
+        {"name":"description","type":["null","string"]}
     ]
 }

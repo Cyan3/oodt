@@ -268,6 +268,7 @@ public class LuceneCatalog implements Catalog {
             }
 
             completeProduct.setProduct(product);
+
             CATALOG_CACHE.put(product.getProductId(), completeProduct);
 
         } else {
@@ -365,7 +366,6 @@ public class LuceneCatalog implements Catalog {
                 CATALOG_CACHE.remove(product.getProductId());
             }
         }
-
     }
 
     /*

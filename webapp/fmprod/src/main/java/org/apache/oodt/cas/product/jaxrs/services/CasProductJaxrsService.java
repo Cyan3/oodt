@@ -35,6 +35,7 @@ import org.apache.oodt.cas.filemgr.structs.FileTransferStatus;
 import org.apache.oodt.cas.filemgr.structs.Product;
 import org.apache.oodt.cas.filemgr.structs.ProductType;
 import org.apache.oodt.cas.filemgr.structs.Reference;
+import org.apache.oodt.cas.filemgr.system.FileManagerClient;
 import org.apache.oodt.cas.filemgr.system.XmlRpcFileManagerClient;
 import org.apache.oodt.cas.metadata.Metadata;
 import org.apache.oodt.cas.product.jaxrs.exceptions.BadRequestException;
@@ -90,7 +91,7 @@ public class CasProductJaxrsService
 
     try
     {
-      XmlRpcFileManagerClient client = getContextClient();
+      FileManagerClient client = getContextClient();
       Product product = client.getProductById(productId);
       List<Reference> references = client.getProductReferences(product);
 
@@ -129,7 +130,7 @@ public class CasProductJaxrsService
 
     try
     {
-      XmlRpcFileManagerClient client = getContextClient();
+      FileManagerClient client = getContextClient();
 
       // Find the product.
       Product product = client.getProductById(productId);
@@ -174,7 +175,7 @@ public class CasProductJaxrsService
 
     try
     {
-      XmlRpcFileManagerClient client = getContextClient();
+      FileManagerClient client = getContextClient();
 
       String datasetId;
       String datasetName;
@@ -250,7 +251,7 @@ public class CasProductJaxrsService
 
     try
     {
-      XmlRpcFileManagerClient client = getContextClient();
+      FileManagerClient client = getContextClient();
       for (FileTransferStatus status : client.getCurrentFileTransfers())
       {
         Reference reference = status.getFileRef();
@@ -300,7 +301,7 @@ public class CasProductJaxrsService
     {
       List<TransferResource> transferResources =
         new ArrayList<TransferResource>();
-      XmlRpcFileManagerClient client = getContextClient();
+      FileManagerClient client = getContextClient();
       for (FileTransferStatus status : client.getCurrentFileTransfers())
       {
         Product product = status.getParentProduct();
@@ -351,7 +352,7 @@ public class CasProductJaxrsService
    * @throws Exception if an object cannot be retrieved from the context
    * attribute
    */
-  public XmlRpcFileManagerClient getContextClient()
+  public FileManagerClient getContextClient()
     throws Exception
   {
     // Get the file manager client from the servlet context.

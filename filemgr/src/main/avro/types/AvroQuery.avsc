@@ -5,6 +5,6 @@
     "namespace":"org.apache.oodt.cas.filemgr.structs.avrotypes",
     "imports":["AvroQueryCriteria.avsc"],
     "fields":[
-        {"name":"elementName","type":{"type": "array", "items": "AvroQueryCriteria"}}
+        {"name":"criteria","type":["null",{"type": "array", "items": "AvroQueryCriteria"}]}
     ]
 }

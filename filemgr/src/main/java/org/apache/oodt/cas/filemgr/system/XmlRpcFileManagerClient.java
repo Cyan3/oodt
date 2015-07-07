@@ -17,24 +17,12 @@
 
 package org.apache.oodt.cas.filemgr.system;
 
-//APACHE imports
 import org.apache.xmlrpc.CommonsXmlRpcTransport;
 import org.apache.xmlrpc.XmlRpcClient;
 import org.apache.xmlrpc.XmlRpcClientException;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.XmlRpcTransport;
 import org.apache.xmlrpc.XmlRpcTransportFactory;
-//JDK imports
-import java.net.URL;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.File;
-//OODT imports
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpMethodRetryHandler;
@@ -60,17 +48,15 @@ import org.apache.oodt.cas.filemgr.structs.exceptions.DataTransferException;
 import org.apache.oodt.cas.filemgr.structs.exceptions.ConnectionException;
 import org.apache.oodt.cas.filemgr.structs.query.ComplexQuery;
 import org.apache.oodt.cas.filemgr.structs.query.QueryResult;
-
-/**
- * @author mattmann (Chris Mattmann)
- * @author bfoster (Brian Foster)
- * @version $Revision$
- * 
- * <p>
- * The XML RPC based file manager client.
- * </p>
- * 
- */
+import java.net.URL;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.File;
 
 public class XmlRpcFileManagerClient implements FileManagerClient {
 
@@ -88,21 +74,11 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
     private DataTransfer dataTransfer = null;
 
     public XmlRpcFileManagerClient(final URL url) throws ConnectionException {
-       this(url, true);
+        this(url, true);
     }
 
-    /**
-     * <p>
-     * Constructs a new XmlRpcFileManagerClient with the given <code>url</code>.
-     * </p>
-     * 
-     * @param url
-     *            The url pointer to the xml rpc file manager service.
-     * @param testConnection
-     *            Whether or not to check if server at given url is alive.
-     */
     public XmlRpcFileManagerClient(final URL url, boolean testConnection)
-          throws ConnectionException {
+            throws ConnectionException {
         // set up the configuration, if there is any
         if (System.getProperty("org.apache.oodt.cas.filemgr.properties") != null) {
             String configFile = System
@@ -130,7 +106,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
                         new HttpMethodRetryHandler() {
 
                             public boolean retryMethod(HttpMethod method,
-                                    IOException e, int count) {
+                                                       IOException e, int count) {
                                 if (count < Integer
                                         .getInteger(
                                                 "org.apache.oodt.cas.filemgr.system.xmlrpc.connection.retries",
@@ -179,26 +155,26 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
         }
 
     }
-    
+
     public boolean refreshConfigAndPolicy() {
-      boolean success = false;
-  
-      Vector<Object> argList = new Vector<Object>();
-      try {
-        success = ((Boolean) client.execute("filemgr.refreshConfigAndPolicy",
-            argList)).booleanValue();
-      } catch (XmlRpcException e) {
-        LOG.log(Level.WARNING, "XmlRpcException when connecting to filemgr: ["
-            + this.fileManagerUrl + "]");
-        success = false;
-      } catch (IOException e) {
-        LOG.log(Level.WARNING, "IOException when connecting to filemgr: ["
-            + this.fileManagerUrl + "]");
-        success = false;
-      }
-  
-      return success;
-  }
+        boolean success = false;
+
+        Vector<Object> argList = new Vector<Object>();
+        try {
+            success = ((Boolean) client.execute("filemgr.refreshConfigAndPolicy",
+                    argList)).booleanValue();
+        } catch (XmlRpcException e) {
+            LOG.log(Level.WARNING, "XmlRpcException when connecting to filemgr: ["
+                    + this.fileManagerUrl + "]");
+            success = false;
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "IOException when connecting to filemgr: ["
+                    + this.fileManagerUrl + "]");
+            success = false;
+        }
+
+        return success;
+    }
 
     public boolean isAlive() {
         boolean connected = false;
@@ -231,7 +207,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
         boolean success = false;
 
         try {
-            success = ((Boolean) client.execute("filemgr.xmlrpc_transferringProduct",
+            success = ((Boolean) client.execute("filemgr.transferringProduct",
                     argList)).booleanValue();
         } catch (XmlRpcException e) {
             throw new DataTransferException(e.getMessage());
@@ -253,7 +229,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             success = ((Boolean) client.execute(
-                    "filemgr.xmlrpc_removeProductTransferStatus", argList))
+                    "filemgr.removeProductTransferStatus", argList))
                     .booleanValue();
         } catch (XmlRpcException e) {
             throw new DataTransferException(e.getMessage());
@@ -274,7 +250,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
         boolean success = false;
 
         try {
-            success = ((Boolean) client.execute("filemgr.xmlrpc_isTransferComplete",
+            success = ((Boolean) client.execute("filemgr.isTransferComplete",
                     argList)).booleanValue();
         } catch (XmlRpcException e) {
             throw new DataTransferException(e.getMessage());
@@ -296,7 +272,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
         boolean success = false;
 
         try {
-            success = ((Boolean) client.execute("filemgr.xmlrpc_moveProduct", argList))
+            success = ((Boolean) client.execute("filemgr.moveProduct", argList))
                     .booleanValue();
         } catch (XmlRpcException e) {
             throw new DataTransferException(e.getMessage());
@@ -317,7 +293,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
         boolean success = false;
 
         try {
-            success = ((Boolean) client.execute("filemgr.xmlrpc_modifyProduct",
+            success = ((Boolean) client.execute("filemgr.modifyProduct",
                     argList)).booleanValue();
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
@@ -339,7 +315,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
         boolean success = false;
 
         try {
-            success = ((Boolean) client.execute("filemgr.xmlrpc_removeProduct",
+            success = ((Boolean) client.execute("filemgr.removeProduct",
                     argList)).booleanValue();
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
@@ -361,7 +337,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             statusHash = (Hashtable<String, Object>) client.execute(
-                    "filemgr.xmlrpc_getCurrentFileTransfer", argList);
+                    "filemgr.getCurrentFileTransfer", argList);
         } catch (XmlRpcException e) {
             throw new DataTransferException(e.getMessage());
         } catch (IOException e) {
@@ -386,7 +362,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             statusVector = (Vector<Hashtable<String, Object>>) client.execute(
-                    "filemgr.xmlrpc_getCurrentFileTransfers", argList);
+                    "filemgr.getCurrentFileTransfers", argList);
         } catch (XmlRpcException e) {
             throw new DataTransferException(e.getMessage());
         } catch (IOException e) {
@@ -465,7 +441,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             pageHash = (Hashtable<String, Object>) client.execute(
-                    "filemgr.xmlrpc_pagedQuery", argList);
+                    "filemgr.pagedQuery", argList);
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
         } catch (IOException e) {
@@ -485,7 +461,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             pageHash = (Hashtable<String, Object>) client.execute(
-                    "filemgr.xmlrpc_getFirstPage", argList);
+                    "filemgr.getFirstPage", argList);
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
         } catch (IOException e) {
@@ -510,7 +486,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             pageHash = (Hashtable<String, Object>) client.execute(
-                    "filemgr.xmlrpc_getLastPage", argList);
+                    "filemgr.getLastPage", argList);
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
         } catch (IOException e) {
@@ -536,7 +512,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             pageHash = (Hashtable<String, Object>) client.execute(
-                    "filemgr.xmlrpc_getNextPage", argList);
+                    "filemgr.getNextPage", argList);
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
         } catch (IOException e) {
@@ -562,7 +538,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             pageHash = (Hashtable<String, Object>) client.execute(
-                    "filemgr.xmlrpc_getPrevPage", argList);
+                    "filemgr.getPrevPage", argList);
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
         } catch (IOException e) {
@@ -585,7 +561,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
         argList.add(typeHash);
 
         try {
-            productTypeId = (String) client.execute("filemgr.xmlrpc_addProductType",
+            productTypeId = (String) client.execute("filemgr.addProductType",
                     argList);
         } catch (XmlRpcException e) {
             throw new RepositoryManagerException(e.getMessage());
@@ -623,7 +599,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
         Integer numProducts = new Integer(-1);
 
         try {
-            numProducts = (Integer) client.execute("filemgr.xmlrpc_getNumProducts",
+            numProducts = (Integer) client.execute("filemgr.getNumProducts",
                     argList);
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
@@ -643,7 +619,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             topNProducts = (Vector<Hashtable<String, Object>>) client.execute(
-                    "filemgr.xmlrpc_getTopNProducts", argList);
+                    "filemgr.getTopNProducts", argList);
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
         } catch (IOException e) {
@@ -655,8 +631,9 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
         return topNProductList;
     }
 
+
     @SuppressWarnings("unchecked")
-    public List<Product> getTopNProducts(int n, ProductType type)
+    public List<Product> getTopNProductsByProductType(int n, ProductType type)
             throws CatalogException {
         Vector<Object> argList = new Vector<Object>();
         argList.add(new Integer(n));
@@ -668,7 +645,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             topNProducts = (Vector<Hashtable<String, Object>>) client.execute(
-                    "filemgr.xmlrpc_getTopNProducts", argList);
+                    "filemgr.getTopNProductsByProductType", argList);
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
         } catch (IOException e) {
@@ -688,7 +665,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
         argList.add(productHash);
 
         try {
-            client.execute("filemgr.xmlrpc_setProductTransferStatus", argList);
+            client.execute("filemgr.setProductTransferStatus", argList);
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
         } catch (IOException e) {
@@ -704,7 +681,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
         argList.add(productHash);
 
         try {
-            client.execute("filemgr.xmlrpc_addProductReferences", argList);
+            client.execute("filemgr.addProductReferences", argList);
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
         } catch (IOException e) {
@@ -712,41 +689,41 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
         }
     }
 
-  public void addMetadata(Product product, Metadata metadata)
-      throws CatalogException {
+    public void addMetadata(Product product, Metadata metadata)
+            throws CatalogException {
 
-    Vector<Object> argList = new Vector<Object>();
-    argList.add(XmlRpcStructFactory.getXmlRpcProduct(product));
-    argList.add(metadata.getHashtable());
+        Vector<Object> argList = new Vector<Object>();
+        argList.add(XmlRpcStructFactory.getXmlRpcProduct(product));
+        argList.add(metadata.getHashtable());
 
-    try {
-      client.execute("filemgr.xmlrpc_addMetadata", argList);
-    } catch (XmlRpcException e) {
-      throw new CatalogException(e.getMessage());
-    } catch (IOException e) {
-      throw new CatalogException(e.getMessage());
-    }
-  }
-
-  public boolean updateMetadata(Product product, Metadata met)
-      throws CatalogException {
-    Vector<Object> argList = new Vector<Object>();
-    argList.add(XmlRpcStructFactory.getXmlRpcProduct(product));
-    argList.add(met.getHashtable());
-
-    boolean result = false;
-
-    try {
-      result = (Boolean) client.execute("filemgr.xmlrpc_updateMetadata", argList);
-    } catch (XmlRpcException e) {
-      throw new CatalogException(e.getMessage());
-    } catch (IOException e) {
-      throw new CatalogException(e.getMessage());
+        try {
+            client.execute("filemgr.addMetadata", argList);
+        } catch (XmlRpcException e) {
+            throw new CatalogException(e.getMessage());
+        } catch (IOException e) {
+            throw new CatalogException(e.getMessage());
+        }
     }
 
-    return result;
+    public boolean updateMetadata(Product product, Metadata met)
+            throws CatalogException {
+        Vector<Object> argList = new Vector<Object>();
+        argList.add(XmlRpcStructFactory.getXmlRpcProduct(product));
+        argList.add(met.getHashtable());
 
-  }
+        boolean result = false;
+
+        try {
+            result = (Boolean) client.execute("filemgr.updateMetadata", argList);
+        } catch (XmlRpcException e) {
+            throw new CatalogException(e.getMessage());
+        } catch (IOException e) {
+            throw new CatalogException(e.getMessage());
+        }
+
+        return result;
+
+    }
 
     public String catalogProduct(Product product) throws CatalogException {
         Vector<Object> argList = new Vector<Object>();
@@ -755,7 +732,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
         String productId = null;
 
         try {
-            productId = (String) client.execute("filemgr.xmlrpc_catalogProduct",
+            productId = (String) client.execute("filemgr.catalogProduct",
                     argList);
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
@@ -777,7 +754,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             metadata = (Hashtable<String, Object>) client.execute(
-                    "filemgr.xmlrpc_getMetadata", argList);
+                    "filemgr.getMetadata", argList);
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
         } catch (IOException e) {
@@ -790,7 +767,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public Metadata getReducedMetadata(Product product, List<?> elements)
             throws CatalogException {
         Vector<Object> argList = new Vector<Object>();
@@ -803,7 +780,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             metadata = (Hashtable<String, Object>) client.execute(
-                    "filemgr.xmlrpc_getReducedMetadata", argList);
+                    "filemgr.getReducedMetadata", argList);
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
         } catch (IOException e) {
@@ -823,7 +800,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
         boolean success = false;
 
         try {
-            success = ((Boolean) client.execute("filemgr.xmlrpc_removeFile", argList))
+            success = ((Boolean) client.execute("filemgr.removeFile", argList))
                     .booleanValue();
         } catch (XmlRpcException e) {
             throw new DataTransferException(e.getMessage());
@@ -834,24 +811,24 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
         return success;
     }
 
-   public byte[] retrieveFile(String filePath, int offset, int numBytes)
-         throws DataTransferException {
-      Vector<Object> argList = new Vector<Object>();
-      argList.add(filePath);
-      argList.add(new Integer(offset));
-      argList.add(new Integer(numBytes));
+    public byte[] retrieveFile(String filePath, int offset, int numBytes)
+            throws DataTransferException {
+        Vector<Object> argList = new Vector<Object>();
+        argList.add(filePath);
+        argList.add(new Integer(offset));
+        argList.add(new Integer(numBytes));
 
-      try {
-         return (byte[]) client.execute("filemgr.xmlrpc_retrieveFile", argList);
-      } catch (XmlRpcException e) {
-         throw new DataTransferException(e.getMessage());
-      } catch (IOException e) {
-         throw new DataTransferException(e.getMessage());
-      }
-   }
+        try {
+            return (byte[]) client.execute("filemgr.retrieveFile", argList);
+        } catch (XmlRpcException e) {
+            throw new DataTransferException(e.getMessage());
+        } catch (IOException e) {
+            throw new DataTransferException(e.getMessage());
+        }
+    }
 
     public void transferFile(String filePath, byte[] fileData, int offset,
-            int numBytes) throws DataTransferException {
+                             int numBytes) throws DataTransferException {
         Vector<Object> argList = new Vector<Object>();
         argList.add(filePath);
         argList.add(fileData);
@@ -859,7 +836,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
         argList.add(new Integer(numBytes));
 
         try {
-            client.execute("filemgr.xmlrpc_transferFile", argList);
+            client.execute("filemgr.transferFile", argList);
         } catch (XmlRpcException e) {
             throw new DataTransferException(e.getMessage());
         } catch (IOException e) {
@@ -879,7 +856,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             productVector = (Vector<Hashtable<String, Object>>) client.execute(
-                    "filemgr.xmlrpc_getProductsByProductType", argList);
+                    "filemgr.getProductsByProductType", argList);
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
         } catch (IOException e) {
@@ -906,7 +883,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             elementVector = (Vector<Hashtable<String, Object>>) client.execute(
-                    "filemgr.xmlrpc_getElementsByProductType", argList);
+                    "filemgr.getElementsByProductType", argList);
         } catch (XmlRpcException e) {
             throw new ValidationLayerException(e.getMessage());
         } catch (IOException e) {
@@ -930,7 +907,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             elementHash = (Hashtable<String, Object>) client.execute(
-                    "filemgr.xmlrpc_getElementById", argList);
+                    "filemgr.getElementById", argList);
         } catch (XmlRpcException e) {
             throw new ValidationLayerException(e.getMessage());
         } catch (IOException e) {
@@ -954,7 +931,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             elementHash = (Hashtable<String, Object>) client.execute(
-                    "filemgr.xmlrpc_getElementByName", argList);
+                    "filemgr.getElementByName", argList);
         } catch (XmlRpcException e) {
             throw new ValidationLayerException(e.getMessage());
         } catch (IOException e) {
@@ -979,7 +956,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             elementHash = (Hashtable<String, Object>) client.execute(
-                    "filemgr.xmlrpc_getElementByName", argList);
+                    "filemgr.getElementByNameByProductType", argList);
         } catch (XmlRpcException e) {
             throw new ValidationLayerException(e.getMessage());
         } catch (IOException e) {
@@ -1026,7 +1003,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             productVector = (Vector<Hashtable<String, Object>>) client.execute(
-                    "filemgr.xmlrpc_query", argList);
+                    "filemgr.query", argList);
         } catch (XmlRpcException e) {
             e.printStackTrace();
             throw new CatalogException(e.getMessage());
@@ -1052,7 +1029,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             productTypeHash = (Hashtable<String, Object>) client.execute(
-                    "filemgr.xmlrpc_getProductTypeByName", argList);
+                    "filemgr.getProductTypeByName", argList);
         } catch (XmlRpcException e) {
             throw new RepositoryManagerException(e.getLocalizedMessage());
         } catch (IOException e) {
@@ -1075,7 +1052,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             productTypeHash = (Hashtable<String, Object>) client.execute(
-                    "filemgr.xmlrpc_getProductTypeById", argList);
+                    "filemgr.getProductTypeById", argList);
         } catch (XmlRpcException e) {
             throw new RepositoryManagerException(e.getMessage());
         } catch (IOException e) {
@@ -1098,7 +1075,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             productTypeVector = (Vector<Hashtable<String, Object>>) client
-                    .execute("filemgr.xmlrpc_getProductTypes", argList);
+                    .execute("filemgr.getProductTypes", argList);
         } catch (XmlRpcException e) {
             throw new RepositoryManagerException(e.getMessage());
         } catch (IOException e) {
@@ -1125,7 +1102,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             productReferenceVector = (Vector<Hashtable<String, Object>>) client
-                    .execute("filemgr.xmlrpc_getProductReferences", argList);
+                    .execute("filemgr.getProductReferences", argList);
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
         } catch (IOException e) {
@@ -1149,7 +1126,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             productHash = (Hashtable<String, Object>) client.execute(
-                    "filemgr.xmlrpc_getProductById", argList);
+                    "filemgr.getProductById", argList);
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
         } catch (IOException e) {
@@ -1172,7 +1149,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         try {
             productHash = (Hashtable<String, Object>) client.execute(
-                    "filemgr.xmlrpc_getProductByName", argList);
+                    "filemgr.getProductByName", argList);
         } catch (XmlRpcException e) {
             throw new CatalogException(e.getMessage());
         } catch (IOException e) {
@@ -1187,7 +1164,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
     }
 
     public String ingestProduct(Product product, Metadata metadata,
-            boolean clientTransfer) throws Exception {
+                                boolean clientTransfer) throws Exception {
         try {
             // ingest product
             Vector<Object> argList = new Vector<Object>();
@@ -1196,7 +1173,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
             argList.add(productHash);
             argList.add(metadata.getHashtable());
             argList.add(Boolean.valueOf(clientTransfer));
-            String productId = (String) client.execute("filemgr.xmlrpc_ingestProduct",
+            String productId = (String) client.execute("filemgr.ingestProduct",
                     argList);
 
             if (clientTransfer) {
@@ -1224,30 +1201,30 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
                 product.setProductId(productId);
 
                 if (!Boolean.getBoolean("org.apache.oodt.cas.filemgr.serverside.versioning")) {
-                  // version the product
-                  Versioner versioner = GenericFileManagerObjectFactory
-                          .getVersionerFromClassName(product.getProductType()
-                                  .getVersioner());
-                  versioner.createDataStoreReferences(product, metadata);
-                  
-                  // add the newly versioned references to the data store
-                  try {
-                      addProductReferences(product);
-                  } catch (CatalogException e) {
-                      LOG
-                              .log(
-                                      Level.SEVERE,
-                                      "ingestProduct: RepositoryManagerException "
-                                              + "when adding Product References for Product : "
-                                              + product.getProductName()
-                                              + " to RepositoryManager: Message: "
-                                              + e.getMessage());
-                      throw e;
-                  }
+                    // version the product
+                    Versioner versioner = GenericFileManagerObjectFactory
+                            .getVersionerFromClassName(product.getProductType()
+                                    .getVersioner());
+                    versioner.createDataStoreReferences(product, metadata);
+
+                    // add the newly versioned references to the data store
+                    try {
+                        addProductReferences(product);
+                    } catch (CatalogException e) {
+                        LOG
+                                .log(
+                                        Level.SEVERE,
+                                        "ingestProduct: RepositoryManagerException "
+                                                + "when adding Product References for Product : "
+                                                + product.getProductName()
+                                                + " to RepositoryManager: Message: "
+                                                + e.getMessage());
+                        throw e;
+                    }
                 } else {
-                  product.setProductReferences(getProductReferences(product));
+                    product.setProductReferences(getProductReferences(product));
                 }
-                
+
                 // now transfer the product
                 try {
                     dataTransfer.transferProduct(product);
@@ -1282,10 +1259,10 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
         } catch (VersioningException e) {
             e.printStackTrace();
             LOG.log(Level.SEVERE,
-                "ingestProduct: VersioningException when versioning Product: "
-                        + product.getProductName() + " with Versioner "
-                        + product.getProductType().getVersioner()
-                        + ": Message: " + e.getMessage());
+                    "ingestProduct: VersioningException when versioning Product: "
+                            + product.getProductName() + " with Versioner "
+                            + product.getProductType().getVersioner()
+                            + ": Message: " + e.getMessage());
             throw new VersioningException(e);
         } catch (Exception e) {
             e.printStackTrace();
@@ -1316,7 +1293,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         Metadata m = new Metadata();
         m.addMetadata((Hashtable<String, Object>) this.client.execute(
-                "filemgr.xmlrpc_getCatalogValues", args));
+                "filemgr.getCatalogValues", args));
 
         return m;
     }
@@ -1330,7 +1307,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
 
         Metadata m = new Metadata();
         m.addMetadata((Hashtable<String, Object>) this.client.execute(
-                "filemgr.xmlrpc_getOrigValues", args));
+                "filemgr.getOrigValues", args));
 
         return m;
     }
@@ -1343,12 +1320,12 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
         args.add(XmlRpcStructFactory.getXmlRpcProductType(productType));
         return XmlRpcStructFactory
                 .getQueryFromXmlRpc((Hashtable<String, Object>) this.client
-                        .execute("filemgr.xmlrpc_getCatalogQuery", args));
+                        .execute("filemgr.getCatalogQuery", args));
     }
 
     public static void main(String[] args) {
-       CmdLineUtility cmdLineUtility = new CmdLineUtility();
-       cmdLineUtility.run(args);
+        CmdLineUtility cmdLineUtility = new CmdLineUtility();
+        cmdLineUtility.run(args);
     }
 
     /**
@@ -1359,8 +1336,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
     }
 
     /**
-     * @param fileManagerUrl
-     *            The fileManagerUrl to set.
+     * @param fileManagerUrl The fileManagerUrl to set.
      */
     public void setFileManagerUrl(URL fileManagerUrl) {
         this.fileManagerUrl = fileManagerUrl;
@@ -1377,8 +1353,7 @@ public class XmlRpcFileManagerClient implements FileManagerClient {
     }
 
     /**
-     * @param dataTransfer
-     *            The dataTransfer to set.
+     * @param dataTransfer The dataTransfer to set.
      */
     public void setDataTransfer(DataTransfer dataTransfer) {
         this.dataTransfer = dataTransfer;

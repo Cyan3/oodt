@@ -64,7 +64,7 @@ import java.util.Arrays;
 import java.util.List;
 
 //OODT imports
-import org.apache.oodt.cas.filemgr.system.XmlRpcFileManagerClient;
+import org.apache.oodt.cas.filemgr.system.rpc.FactoryClient;
 import org.apache.oodt.cas.filemgr.util.QueryUtils;
 import org.apache.oodt.cas.filemgr.util.SqlParser;
 import org.apache.oodt.cas.metadata.Metadata;
@@ -490,12 +490,15 @@ public class XmlHelper {
 			if (value.toUpperCase().matches(
 					"^\\s*SQL\\s*\\(.*\\)\\s*\\{.*\\}\\s*$"))
 				value = QueryUtils
-						.getQueryResultsAsString(new XmlRpcFileManagerClient(
-								new URL(inputMetadata
-										.getMetadata(QUERY_FILE_MANAGER_URL
-												.getName())))
+						.getQueryResultsAsString(FactoryClient.createClient(new URL(inputMetadata
+								.getMetadata(QUERY_FILE_MANAGER_URL
+										.getName())))
 								.complexQuery(SqlParser
 										.parseSqlQueryMethod(value)));
+			/*new XmlRpcFileManagerClient(
+								new URL(inputMetadata
+										.getMetadata(QUERY_FILE_MANAGER_URL
+												.getName()))*/
 			return value;
 		} catch (Exception e) {
 			throw new Exception("Failed to parse value: " + value, e);

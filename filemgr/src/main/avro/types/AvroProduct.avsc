@@ -3,16 +3,15 @@
   "name": "AvroProduct",
   "default":null,
   "namespace": "org.apache.oodt.cas.filemgr.structs.avrotypes",
-  "doc" : "A Product is a set of files, or a heirarchical, directory structure that should be ingested into the Catalog.",
   "imports": ["AvroReference.avsc","AvroProductType.avsc"],
   "fields" : [
-    {"name": "productId", "type": ["null","string"],"default":null, "doc" : "The product id"},
-    {"name": "productName", "type": ["null","string"],"default":null, "doc" : "The product name"},
-    {"name": "productType", "type":["null","AvroProductType"],"default":null, "doc" : "The product type"},
-    {"name": "productStructure", "type": ["null","string"],"default":null, "doc" : "The product structure: can be Heirarchical, or Flat"},
-    {"name": "references", "type": {"type":"array", "items": "AvroReference"}, "doc" : "A set of References to the items that make up this product"},
-    {"name": "transferStatus", "type": ["null","string"],"default":null, "doc" : "The transfer status of this product: is it TRANSFERING, has it been RECEIVED?"},
-    {"name": "rootRef", "type":["null","AvroReference"],"default":null, "doc" : ""}
+    {"name": "productId", "type": ["null","string"]},
+    {"name": "productName", "type": ["null","string"]},
+    {"name": "productType", "type":["null","AvroProductType"]},
+    {"name": "productStructure", "type": ["null","string"]},
+    {"name": "references", "type": [{"type":"array", "items": "AvroReference"},"null"]},
+    {"name": "transferStatus", "type": ["null","string"]},
+    {"name": "rootRef", "type":["null","AvroReference"]}
 
   ]
 }

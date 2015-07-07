@@ -23,7 +23,7 @@ import java.io.File;
 import java.net.URL;
 
 //OODT imports
-import org.apache.oodt.cas.filemgr.system.XmlRpcFileManagerClient;
+import org.apache.oodt.cas.filemgr.system.rpc.FactoryClient;
 import org.apache.oodt.cas.metadata.exceptions.PreconditionComparatorException;
 import org.apache.oodt.cas.metadata.preconditions.PreConditionComparator;
 
@@ -49,8 +49,9 @@ public class FilemgrUniquenessCheckComparator extends
     protected int performCheck(File product, Boolean compareItem)
             throws PreconditionComparatorException {
         try {
-            boolean returnVal = new XmlRpcFileManagerClient(new URL(
-                    this.filemgrUrl)).hasProduct(product.getName());
+            boolean returnVal = FactoryClient.createClient(new URL(this.filemgrUrl)).hasProduct(product.getName());
+                    //new XmlRpcFileManagerClient(new URL(
+                    //this.filemgrUrl)).hasProduct(product.getName());
             return new Boolean(returnVal).compareTo(compareItem);
         } catch (Exception e) {
             throw new PreconditionComparatorException(

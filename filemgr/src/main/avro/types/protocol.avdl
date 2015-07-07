@@ -17,11 +17,17 @@ import schema "AvroFilterAlgor.avsc";
 import schema "AvroQueryFilter.avsc";
 import schema "AvroComplexQuery.avsc";
 
+    boolean isAlive();
+
+    boolean refreshConfigAndPolicy();
+
     boolean transferringProduct(AvroProduct p);
 
     AvroFileTransferStatus getCurrentFileTransfer();
 
     array<AvroFileTransferStatus> getCurrentFileTransfers();
+
+    double getProductPctTransferred(AvroProduct product);
 
     double getRefPctTransferred(AvroReference reference);
 
@@ -43,15 +49,15 @@ import schema "AvroComplexQuery.avsc";
 
     int getNumProducts(AvroProductType type);
 
-    array<AvroProduct> getTopNProducts(int n);
+    array<AvroProduct> getTopNProductsByProductType(int n,AvroProductType type);
 
-    array<AvroProduct> getTopNProducts(int n,AvroProductType type);
+    array<AvroProduct> getTopNProducts(int n);
 
     boolean hasProduct(string productName);
 
-    AvroMetadata getMetadataPub(AvroProduct product);
+    AvroMetadata getMetadata(AvroProduct product);
 
-    AvroMetadata getReducedMetadataPub(AvroProduct product, array<string> elements);
+    AvroMetadata getReducedMetadata(AvroProduct product, array<string> elements);
 
     array<AvroProductType>  getProductTypes();
 
@@ -81,13 +87,13 @@ import schema "AvroComplexQuery.avsc";
 
     boolean updateMetadata(AvroProduct product,AvroMetadata met);
 
+    string addProductType(AvroProductType type);
+
     string catalogProduct(AvroProduct product);
 
     boolean addMetadata(AvroProduct product, AvroMetadata met);
 
-    boolean addMetadataPub(AvroProduct product,AvroMetadata met);
-
-    boolean addProductReferencesPub(AvroProduct product);
+    boolean addProductReferences(AvroProduct product);
 
     string ingestProduct(AvroProduct p,AvroMetadata m, boolean clientTransfer);
 
@@ -105,10 +111,10 @@ import schema "AvroComplexQuery.avsc";
 
     boolean removeProduct(AvroProduct p);
 
-    AvroMetadata getCatalogValuesPub(AvroMetadata m,AvroProductType productType);
+    AvroMetadata getCatalogValues(AvroMetadata m,AvroProductType productType);
 
-    AvroMetadata getOrigValuesPub(AvroMetadata m,AvroProductType productType);
+    AvroMetadata getOrigValues(AvroMetadata m,AvroProductType productType);
 
-    AvroQuery getCatalogQueryPub(AvroQuery query,AvroProductType productType);
+    AvroQuery getCatalogQuery(AvroQuery query,AvroProductType productType);
 
 }

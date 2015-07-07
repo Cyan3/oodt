@@ -16,14 +16,12 @@
  */
 
 package org.apache.oodt.cas.filemgr.metadata.extractors.examples;
-
 //JDK imports
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
-
 //OODT imports
 import org.apache.oodt.cas.filemgr.metadata.extractors.AbstractFilemgrMetExtractor;
 import org.apache.oodt.cas.filemgr.structs.Product;

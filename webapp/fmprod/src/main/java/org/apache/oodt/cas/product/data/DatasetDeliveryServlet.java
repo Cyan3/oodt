@@ -23,9 +23,11 @@ import org.apache.oodt.cas.filemgr.structs.Product;
 import org.apache.oodt.cas.filemgr.structs.ProductPage;
 import org.apache.oodt.cas.filemgr.structs.ProductType;
 import org.apache.oodt.cas.filemgr.structs.exceptions.ConnectionException;
-import org.apache.oodt.cas.filemgr.system.XmlRpcFileManagerClient;
+import org.apache.oodt.cas.filemgr.system.FileManagerClient;
+import org.apache.oodt.cas.filemgr.system.rpc.FactoryClient;
 import org.apache.oodt.cas.metadata.Metadata;
 import org.apache.oodt.cas.metadata.util.PathUtils;
+import sun.org.mozilla.javascript.xml.XMLLib;
 
 //JDK imports
 import java.io.File;
@@ -64,7 +66,7 @@ public class DatasetDeliveryServlet extends HttpServlet implements
   private static final long serialVersionUID = -6692665690674186105L;
 
   /* our file manager client */
-  private XmlRpcFileManagerClient client;
+  private FileManagerClient client;
 
   /* the working dir in which to create huge zip files */
   private String workingDirPath;
@@ -255,7 +257,8 @@ public class DatasetDeliveryServlet extends HttpServlet implements
       }      
       if (fileMgrURL == null)
         fileMgrURL = "http://localhost:9000";
-      client = new XmlRpcFileManagerClient(new URL(fileMgrURL));
+      client = FactoryClient.createClient(new URL(fileMgrURL));
+              //new XmlRpcFileManagerClient(new URL(fileMgrURL));
     } catch (MalformedURLException ex) {
       throw new ServletException(ex);
     } catch (ConnectionException ex) {

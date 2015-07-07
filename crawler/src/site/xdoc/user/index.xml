@@ -384,50 +384,57 @@ the License.
       <p>You should see a response message at the end similar to:</p>
 
       <source>
-      log4j:WARN No appenders could be found for logger (org.springframework.context.support.FileSystemXmlApplicationContext).
-      log4j:WARN Please initialize the log4j system properly.
-      http://localhost:9000/
-      StdProductCrawler
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.crawl.ProductCrawler crawl
-      INFO: Crawling /data/test
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.crawl.ProductCrawler handleFile
-      INFO: Handling file /data/test/blah.txt
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.metadata.extractors.MetReaderExtractor extrMetadata
-      INFO: Reading metadata from /data/test/blah.txt.met
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.crawl.ProductCrawler ingest
-      INFO: ProductCrawler: Ready to ingest product: [/data/test/blah.txt]: ProductType: [GenericFile]
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.ingest.StdIngester setFileManager
-      INFO: StdIngester: connected to file manager: [http://localhost:9000/]
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.datatransfer.LocalDataTransferer setFileManagerUrl
-      INFO: Local Data Transfer to: [http://localhost:9000/] enabled
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.ingest.StdIngester ingest
-      INFO: StdIngester: ingesting product: ProductName: [blah.txt]: ProductType: [GenericFile]: FileLocation: [/data/test/]
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.versioning.VersioningUtils createBasicDataStoreRefsFlat
-      FINE: VersioningUtils: Generated data store ref: file:/Users/mattmann/files/blah.txt/blah.txt from origRef: file:/data/test/blah.txt
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.system.XmlRpcFileManager runExtractors
-      INFO: Running Met Extractor: [org.apache.oodt.cas.filemgr.metadata.extractors.CoreMetExtractor] for product type: [GenericFile]
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.system.XmlRpcFileManager runExtractors
-      INFO: Running Met Extractor: [org.apache.oodt.cas.filemgr.metadata.extractors.examples.MimeTypeExtractor] for product type: [GenericFile]
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.catalog.LuceneCatalog toDoc
-      WARNING: No Metadata specified for product [blah.txt] for required field [DataVersion]: Attempting to continue processing metadata
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.system.XmlRpcFileManagerClient ingestProduct
-      FINEST: File Manager Client: clientTransfer enabled: transfering product [blah.txt]
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.datatransfer.LocalDataTransferer moveFile
-      INFO: LocalDataTransfer: Moving File: file:/data/test/blah.txt to file:/Users/mattmann/files/blah.txt/blah.txt
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.catalog.LuceneCatalog toDoc
-      WARNING: No Metadata specified for product [blah.txt] for required field [DataVersion]: Attempting to continue processing metadata
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.crawl.ProductCrawler ingest
-      INFO: Successfully ingested product: [/data/test/blah.txt]: product id: 72db4bba-658a-11de-bedb-77f2d752c436
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.crawl.ProductCrawler handleFile
-      INFO: Successful ingest of product: [/data/test/blah.txt]
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.crawl.ProductCrawler performProductCrawlerActions
-      INFO: Performing action (id = DeleteDataFile : description = Deletes the current data file)
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.crawl.action.DeleteFile performAction
-      INFO: Deleting file /data/test/blah.txt
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.crawl.ProductCrawler handleFile
-      INFO: Handling file /data/test/blah.txt.met
-      Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.crawl.ProductCrawler handleFile
-      WARNING: Failed to pass preconditions for ingest of product: [/data/test/blah.txt.met]
+        log4j:WARN No appenders could be found for logger
+        (org.springframework.context.support.FileSystemXmlApplicationContext).
+        log4j:WARN Please initialize the log4j system properly.
+        http://localhost:9000/
+        StdProductCrawler
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.crawl.ProductCrawler crawl
+        INFO: Crawling /data/test
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.crawl.ProductCrawler handleFile
+        INFO: Handling file /data/test/blah.txt
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.metadata.extractors.MetReaderExtractor extrMetadata
+        INFO: Reading metadata from /data/test/blah.txt.met
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.crawl.ProductCrawler ingest
+        INFO: ProductCrawler: Ready to ingest product: [/data/test/blah.txt]: ProductType: [GenericFile]
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.ingest.StdIngester setFileManager
+        INFO: StdIngester: connected to file manager: [http://localhost:9000/]
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.datatransfer.LocalDataTransferer setFileManagerUrl
+        INFO: Local Data Transfer to: [http://localhost:9000/] enabled
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.ingest.StdIngester ingest
+        INFO: StdIngester: ingesting product: ProductName: [blah.txt]: ProductType: [GenericFile]: FileLocation:
+        [/data/test/]
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.versioning.VersioningUtils createBasicDataStoreRefsFlat
+        FINE: VersioningUtils: Generated data store ref: file:/Users/mattmann/files/blah.txt/blah.txt from origRef:
+        file:/data/test/blah.txt
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.system.XmlRpcFileManagerServer runExtractors
+        INFO: Running Met Extractor: [org.apache.oodt.cas.filemgr.metadata.extractors.CoreMetExtractor] for product
+        type: [GenericFile]
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.system.XmlRpcFileManagerServer runExtractors
+        INFO: Running Met Extractor: [org.apache.oodt.cas.filemgr.metadata.extractors.examples.MimeTypeExtractor] for
+        product type: [GenericFile]
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.catalog.LuceneCatalog toDoc
+        WARNING: No Metadata specified for product [blah.txt] for required field [DataVersion]: Attempting to continue
+        processing metadata
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.system.XmlRpcFileManagerClient ingestProduct
+        FINEST: File Manager Client: clientTransfer enabled: transfering product [blah.txt]
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.datatransfer.LocalDataTransferer moveFile
+        INFO: LocalDataTransfer: Moving File: file:/data/test/blah.txt to file:/Users/mattmann/files/blah.txt/blah.txt
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.filemgr.catalog.LuceneCatalog toDoc
+        WARNING: No Metadata specified for product [blah.txt] for required field [DataVersion]: Attempting to continue
+        processing metadata
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.crawl.ProductCrawler ingest
+        INFO: Successfully ingested product: [/data/test/blah.txt]: product id: 72db4bba-658a-11de-bedb-77f2d752c436
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.crawl.ProductCrawler handleFile
+        INFO: Successful ingest of product: [/data/test/blah.txt]
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.crawl.ProductCrawler performProductCrawlerActions
+        INFO: Performing action (id = DeleteDataFile : description = Deletes the current data file)
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.crawl.action.DeleteFile performAction
+        INFO: Deleting file /data/test/blah.txt
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.crawl.ProductCrawler handleFile
+        INFO: Handling file /data/test/blah.txt.met
+        Jun 30, 2009 8:26:57 AM org.apache.oodt.cas.crawl.ProductCrawler handleFile
+        WARNING: Failed to pass preconditions for ingest of product: [/data/test/blah.txt.met]
       </source>
 
     <p>which means that everything installed okay!</p>

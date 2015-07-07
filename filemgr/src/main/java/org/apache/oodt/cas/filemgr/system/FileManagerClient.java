@@ -1,17 +1,31 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.oodt.cas.filemgr.system;
 
-
+// OODT imports
 import org.apache.oodt.cas.filemgr.datatransfer.DataTransfer;
 import org.apache.oodt.cas.filemgr.structs.*;
 import org.apache.oodt.cas.filemgr.structs.exceptions.*;
 import org.apache.oodt.cas.filemgr.structs.query.ComplexQuery;
 import org.apache.oodt.cas.filemgr.structs.query.QueryResult;
-
 import org.apache.oodt.cas.metadata.Metadata;
-import org.apache.xmlrpc.*;
 
-
-import java.io.IOException;
+//JDK imports
 import java.net.URL;
 import java.util.List;
 
@@ -68,7 +82,7 @@ public interface FileManagerClient {
     public List<Product> getTopNProducts(int n) throws CatalogException;
 
     @SuppressWarnings("unchecked")
-    public List<Product> getTopNProducts(int n, ProductType type)throws CatalogException;
+    public List<Product> getTopNProductsByProductType(int n, ProductType type)throws CatalogException;
 
     public void setProductTransferStatus(Product product)throws CatalogException;
 
@@ -133,13 +147,13 @@ public interface FileManagerClient {
     public String ingestProduct(Product product, Metadata metadata,boolean clientTransfer) throws Exception;
 
     @SuppressWarnings("unchecked")
-    public Metadata getCatalogValues(Metadata metadata, ProductType productType)throws XmlRpcException, IOException;
+    public Metadata getCatalogValues(Metadata metadata, ProductType productType)throws Exception;
 
     @SuppressWarnings("unchecked")
-    public Metadata getOrigValues(Metadata metadata, ProductType productType)throws XmlRpcException, IOException;
+    public Metadata getOrigValues(Metadata metadata, ProductType productType)throws Exception;
 
     @SuppressWarnings("unchecked")
-    public Query getCatalogQuery(Query query, ProductType productType)throws XmlRpcException, IOException;
+    public Query getCatalogQuery(Query query, ProductType productType)throws Exception;
 
     public URL getFileManagerUrl();
 

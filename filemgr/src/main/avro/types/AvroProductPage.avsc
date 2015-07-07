@@ -9,6 +9,6 @@
         {"name":"totalPages","type":"int","default":-1},
         {"name":"pageSize","type":"int","default":-1},
         {"name":"pageProducts","type":["null",{"type": "array", "items": "AvroProduct"}]},
-        {"name":"numOfHits","type":"long"}
+        {"name":"numOfHits","type":["null","long"]}
     ]
 }

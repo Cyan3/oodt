@@ -1,6 +1,23 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.oodt.cas.filemgr.system;
 
-import com.google.common.collect.Lists;
+//OODT imports
 import org.apache.oodt.cas.filemgr.catalog.Catalog;
 import org.apache.oodt.cas.filemgr.datatransfer.DataTransfer;
 import org.apache.oodt.cas.filemgr.datatransfer.TransferStatusTracker;
@@ -17,27 +34,23 @@ import org.apache.oodt.cas.filemgr.structs.query.filter.ObjectTimeEvent;
 import org.apache.oodt.cas.filemgr.structs.query.filter.TimeEvent;
 import org.apache.oodt.cas.filemgr.structs.type.TypeHandler;
 import org.apache.oodt.cas.filemgr.util.GenericFileManagerObjectFactory;
-import org.apache.oodt.cas.filemgr.util.XmlRpcStructFactory;
 import org.apache.oodt.cas.filemgr.versioning.Versioner;
 import org.apache.oodt.cas.filemgr.versioning.VersioningUtils;
 import org.apache.oodt.cas.metadata.Metadata;
 import org.apache.oodt.cas.metadata.exceptions.MetExtractionException;
 import org.apache.oodt.commons.date.DateUtils;
-import org.apache.xmlrpc.WebServer;
 
-import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+//JDK imports
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import com.google.common.collect.Lists;
 
-public abstract class FileManager {
+public class FileManager {
 
-    /* the port to run the XML RPC web server on, default is 1999 */
-    protected int port = 1999;
-    /* our Catalog */
     private Catalog catalog = null;
 
     /* our RepositoryManager */
@@ -47,7 +60,7 @@ public abstract class FileManager {
     private DataTransfer dataTransfer = null;
 
     /* our log stream */
-    private static final Logger LOG = Logger.getLogger(XmlRpcFileManager.class.getName());
+    private static final Logger LOG = Logger.getLogger(FileManager.class.getName());
 
 
     /* our data transfer status tracker */
@@ -56,34 +69,13 @@ public abstract class FileManager {
     /* whether or not to expand a product instance into met */
     private boolean expandProductMet;
 
-    /**
-     * <p>                                                                         getReducedMetadata
-     * Creates a new XmlRpcFileManager with the given metadata store factory,
-     * and the given data store factory, on the given port.
-     * </p>
-     *
-     * @param port
-     *            The web server port to run the XML Rpc server on, defaults to
-     *            1999.
-     */
-    public FileManager(int port) throws Exception {
-        // start the server
-        this.startUpServer(port);
-
-        this.loadConfiguration();
+    public FileManager() throws Exception {
         LOG.log(Level.INFO, "File Manager started by "
                 + System.getProperty("user.name", "unknown"));
-
     }
-
-    public abstract void startUpServer(int port);
 
     public void setCatalog(Catalog catalog) {
         this.catalog = catalog;
-    }
-
-    public boolean isAlive() {
-        return true;
     }
 
     public boolean refreshConfigAndPolicy() {
@@ -119,8 +111,8 @@ public abstract class FileManager {
         return transferStatusTracker.getCurrentFileTransfers();
     }
 
-    public double getProductPctTransferred(Hashtable<String, Object> productHash) {
-        Product product = XmlRpcStructFactory.getProductFromXmlRpc(productHash);
+    public double getProductPctTransferred(Product product) {
+
         double pct = transferStatusTracker.getPctTransferred(product);
         return pct;
     }
@@ -130,7 +122,7 @@ public abstract class FileManager {
 
         try {
             pct = transferStatusTracker.getPctTransferred(reference);
-        } catch (Exception e) {       //unecesaryPublicFunctions
+        } catch (Exception e) {
             e.printStackTrace();
             LOG.log(Level.WARNING,
                     "Exception getting transfer percentage for ref: ["
@@ -254,8 +246,6 @@ public abstract class FileManager {
             throws CatalogException {
         int numProducts = -1;
 
-
-
         try {
             numProducts = catalog.getNumProducts(type);
         } catch (CatalogException e) {
@@ -285,7 +275,7 @@ public abstract class FileManager {
         }
     }
 
-    public List<Product> getTopNProducts(int n,
+    public List<Product> getTopNProductsByProductType(int n,
                                          ProductType type)
             throws CatalogException {
         List<Product> topNProducts = null;
@@ -307,24 +297,6 @@ public abstract class FileManager {
         Product p = catalog.getProductByName(productName);
         return p != null
                 && p.getTransferStatus().equals(Product.STATUS_RECEIVED);
-    }
-    //same I did bottom
-    //unecesaryPublicFunctions
-    public Metadata getMetadataPub(
-            Product product) throws CatalogException {
-        return this.getMetadata(product);
-    }
-
-    //getReducedMetadata its private cant use it in my class
-    //what to do now, change the name to use it.
-    // I think this functin is useless
-    // better make getReducedMetadata public or protected so i can use it.
-
-    //unecesaryPublicFunctions
-    public Metadata getReducedMetadataPub(
-            Product product, Vector<String> elements)
-            throws CatalogException {
-        return this.getReducedMetadata(product, elements);
     }
 
     public List<ProductType>  getProductTypes()
@@ -387,13 +359,13 @@ public abstract class FileManager {
     public Product getProductByName(String productName)
             throws CatalogException {
         Product product = null;
-
         try {
             product = catalog.getProductByName(productName);
             // it is possible here that the underlying catalog did not
             // set the ProductType
             // to obey the contract of the File Manager, we need to make
             // sure its set here
+
             product.setProductType(this.repositoryManager
                     .getProductTypeById(product.getProductType()
                             .getProductTypeId()));
@@ -524,19 +496,12 @@ public abstract class FileManager {
         }
     }
 
-    //unecesaryPublicFunctions
-    public List<Product> queryPub(
-            Query query,
-            ProductType type)
-            throws CatalogException {
-        return this.query(query, type);
-    }
-
     public ProductType getProductTypeByName(String productTypeName)
             throws RepositoryManagerException {
-        return repositoryManager.getProductTypeByName(productTypeName);
-    }
 
+        ProductType pt = repositoryManager.getProductTypeByName(productTypeName);
+        return pt;
+    }
     public ProductType getProductTypeById(String productTypeId)
             throws RepositoryManagerException {
         try {
@@ -556,22 +521,6 @@ public abstract class FileManager {
         catalog.removeMetadata(oldMetadata, product);
         catalog.addMetadata(met, product);
         return true;
-    }
-
-    //unecesaryPublicFunctions
-    public synchronized String catalogProductPub(Product product)
-            throws CatalogException {
-        return catalogProduct(product);
-    }
-    //unecesaryPublicFunctions
-    public synchronized boolean addMetadataPub(Product product,
-                                            Metadata met) throws CatalogException {
-        return addMetadata(product, met) != null;
-    }
-    //unecesaryPublicFunctions
-    public synchronized boolean addProductReferencesPub(Product product)
-            throws CatalogException {
-        return addProductReferences(product);
     }
 
     public String ingestProduct(Product p,
@@ -634,8 +583,10 @@ public abstract class FileManager {
                 }
             }
 
+
             // that's it!
             return p.getProductId();
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new CatalogException("Error ingesting product [" + p + "] : "
@@ -830,29 +781,8 @@ public abstract class FileManager {
 
         return true;
     }
-    //unecesaryPublicFunctions
-    public Metadata getCatalogValuesPub(
-            Metadata m,
-            ProductType productType)
-            throws RepositoryManagerException {
-        return this.getCatalogValues(m, productType);
-    }
-    //unecesaryPublicFunctions
-    public Metadata getOrigValuesPub(
-            Metadata m,
-            ProductType productType)
-            throws RepositoryManagerException {
-        return this.getOrigValues(m, productType);
-    }
-    //unecesaryPublicFunctions
-    public Query getCatalogQueryPub(
-            Query query,
-            ProductType productType)
-            throws RepositoryManagerException, QueryFormulationException {
-        return this.getCatalogQuery(query, productType);
-    }
 
-    private synchronized String catalogProduct(Product p)
+    public synchronized String catalogProduct(Product p)
             throws CatalogException {
         try {
             catalog.addProduct(p);
@@ -867,7 +797,7 @@ public abstract class FileManager {
         return p.getProductId();
     }
 
-    private synchronized Metadata addMetadata(Product p, Metadata m)
+    public synchronized Metadata addMetadata(Product p, Metadata m)
             throws CatalogException {
 
         //apply handlers
@@ -940,7 +870,7 @@ public abstract class FileManager {
         return met;
     }
 
-    private synchronized boolean addProductReferences(Product product)
+    public synchronized boolean addProductReferences(Product product)
             throws CatalogException {
         catalog.addProductReferences(product);
         return true;
@@ -960,7 +890,7 @@ public abstract class FileManager {
         }
     }
 
-    private List<Product> query(Query query, ProductType productType) throws CatalogException {
+    public List<Product> query(Query query, ProductType productType) throws CatalogException {
         List<String> productIdList = null;
         List<Product> productList = null;
 
@@ -994,7 +924,7 @@ public abstract class FileManager {
         }
     }
 
-    private Metadata getReducedMetadata(Product product, List<String> elements) throws CatalogException {
+    public Metadata getReducedMetadata(Product product, List<String> elements) throws CatalogException {
         try {
             Metadata m = null;
             if (elements != null && elements.size() > 0) {
@@ -1014,7 +944,7 @@ public abstract class FileManager {
         }
     }
 
-    private Metadata getMetadata(Product product) throws CatalogException {
+    public Metadata getMetadata(Product product) throws CatalogException {
         try {
             Metadata m = catalog.getMetadata(product);
             if(this.expandProductMet) m = this.buildProductMetadata(product, m);
@@ -1029,7 +959,7 @@ public abstract class FileManager {
         }
     }
 
-    private Metadata getOrigValues(Metadata metadata, ProductType productType)
+    public Metadata getOrigValues(Metadata metadata, ProductType productType)
             throws RepositoryManagerException {
         List<TypeHandler> handlers = this.repositoryManager.getProductTypeById(
                 productType.getProductTypeId()).getHandlers();
@@ -1041,7 +971,7 @@ public abstract class FileManager {
         return metadata;
     }
 
-    private Metadata getCatalogValues(Metadata metadata, ProductType productType)
+    public Metadata getCatalogValues(Metadata metadata, ProductType productType)
             throws RepositoryManagerException {
         List<TypeHandler> handlers = this.repositoryManager.getProductTypeById(
                 productType.getProductTypeId()).getHandlers();
@@ -1053,7 +983,7 @@ public abstract class FileManager {
         return metadata;
     }
 
-    private Query getCatalogQuery(Query query, ProductType productType)
+    public Query getCatalogQuery(Query query, ProductType productType)
             throws RepositoryManagerException, QueryFormulationException {
         List<TypeHandler> handlers = this.repositoryManager.getProductTypeById(
                 productType.getProductTypeId()).getHandlers();
@@ -1143,7 +1073,7 @@ public abstract class FileManager {
         return pMet;
     }
 
-    private void loadConfiguration() throws FileNotFoundException, IOException {
+    public void loadConfiguration() throws FileNotFoundException, IOException {
         // set up the configuration, if there is any
         if (System.getProperty("org.apache.oodt.cas.filemgr.properties") != null) {
             String configFile = System
@@ -1154,33 +1084,32 @@ public abstract class FileManager {
             System.getProperties().load(new FileInputStream(new File(configFile)));
         }
 
-        String metaFactory = null, dataFactory = null, transferFactory = null;
+        String metaFactory = null, dataFactory = null;
 
         metaFactory = System.getProperty("filemgr.catalog.factory",
                 "org.apache.oodt.cas.filemgr.catalog.DataSourceCatalogFactory");
         dataFactory = System
                 .getProperty("filemgr.repository.factory",
                         "org.apache.oodt.cas.filemgr.repository.DataSourceRepositoryManagerFactory");
-        transferFactory = System.getProperty("filemgr.datatransfer.factory",
-                "org.apache.oodt.cas.filemgr.datatransfer.LocalDataTransferFactory");
 
         catalog = GenericFileManagerObjectFactory
                 .getCatalogServiceFromFactory(metaFactory);
         repositoryManager = GenericFileManagerObjectFactory
                 .getRepositoryManagerServiceFromFactory(dataFactory);
-        dataTransfer = GenericFileManagerObjectFactory
-                .getDataTransferServiceFromFactory(transferFactory);
+
 
         transferStatusTracker = new TransferStatusTracker(catalog);
 
         // got to start the server before setting up the transfer client since
         // it
         // checks for a live server
-        dataTransfer
-                .setFileManagerUrl(new URL("http://localhost:" + port));
 
         expandProductMet = Boolean
                 .getBoolean("org.apache.oodt.cas.filemgr.metadata.expandProduct");
+    }
+
+    public void setDataTransfer(DataTransfer dataTransfer){
+        this.dataTransfer = dataTransfer;
     }
 
 }
