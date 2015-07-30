@@ -40,10 +40,10 @@ import junit.framework.TestCase;
 
 /**
  * 
- * Test harness for the {@link XmlRpcWorkflowManagerClient}.
+ * Test harness for the {@link WorkflowManagerClient}.
  * 
  */
-public class TestXmlRpcWorkflowManagerClient extends TestCase {
+public class TestWorkflowManagerClient extends TestCase {
 
   private static final String catalogPath = new File("./target/instTestMetCat")
       .getAbsolutePath();
@@ -56,7 +56,7 @@ public class TestXmlRpcWorkflowManagerClient extends TestCase {
 
   private static final int stdPgSz = 20;
 
-  public TestXmlRpcWorkflowManagerClient() {
+  public TestWorkflowManagerClient() {
 
     testWrkInst = new WorkflowInstance();
     testWrkFlw = new Workflow();

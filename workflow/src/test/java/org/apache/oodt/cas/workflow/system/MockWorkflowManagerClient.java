@@ -35,17 +35,17 @@ import org.apache.oodt.cas.workflow.structs.WorkflowTask;
 import com.google.common.collect.Lists;
 
 /**
- * A Mock {@link XmlRpcWorkflowManagerClient}.
+ * A Mock {@link AvroRpcWorkflowManagerClient}.
  *
  * @author bfoster (Brian Foster)
  */
-public class MockXmlRpcWorkflowManagerClient extends
-      XmlRpcWorkflowManagerClient {
+public class MockWorkflowManagerClient extends
+      AvroRpcWorkflowManagerClient {
 
    private MethodCallDetails lastMethodCallDetails;
    private MockWorkflowRepository workflowRepo;
 
-   public MockXmlRpcWorkflowManagerClient() throws MalformedURLException {
+   public MockWorkflowManagerClient() throws MalformedURLException {
       super(new URL("http://localhost:9000"));
       workflowRepo = new MockWorkflowRepository();
    }

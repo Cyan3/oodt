@@ -55,6 +55,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.apache.oodt.cas.workflow.system.WorkflowManagerClient;
+import org.apache.oodt.cas.workflow.system.XmlRpcWorkflowManagerClient;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -85,7 +88,6 @@ import org.apache.oodt.cas.pge.metadata.PgeTaskStatus;
 import org.apache.oodt.cas.pge.writers.MockDynamicConfigFileWriter;
 import org.apache.oodt.cas.workflow.metadata.CoreMetKeys;
 import org.apache.oodt.cas.workflow.structs.WorkflowTaskConfiguration;
-import org.apache.oodt.cas.workflow.system.XmlRpcWorkflowManagerClient;
 
 //Google imports
 import com.google.common.collect.Lists;
@@ -280,7 +282,7 @@ public class TestPGETaskInstance extends TestCase {
       PGETaskInstance pgeTask = createTestInstance();
       pgeTask.pgeMetadata.replaceMetadata(WORKFLOW_MANAGER_URL,
             "http://localhost:8888");
-      XmlRpcWorkflowManagerClient wmClient =
+      WorkflowManagerClient wmClient =
          pgeTask.createWorkflowManagerClient();
       assertNotNull(wmClient);
    }
@@ -465,7 +467,7 @@ public class TestPGETaskInstance extends TestCase {
       pgeTask.pgeMetadata.replaceMetadata(ATTEMPT_INGEST_ALL, Boolean.toString(true));
       pgeTask.workflowInstId = "WorkflowInstanceId";
 
-      pgeTask.wm = createMock(XmlRpcWorkflowManagerClient.class);
+      pgeTask.wm = createMock(WorkflowManagerClient.class);
       expect(pgeTask.wm.updateWorkflowInstanceStatus(pgeTask.workflowInstId,
             CRAWLING.getWorkflowStatusName())).andReturn(true);
       replay(pgeTask.wm);
@@ -482,7 +484,7 @@ public class TestPGETaskInstance extends TestCase {
       verify(pc);
 
       // Case: UpdateStatus Fail
-      pgeTask.wm = createMock(XmlRpcWorkflowManagerClient.class);
+      pgeTask.wm = createMock(WorkflowManagerClient.class);
       expect(pgeTask.wm.updateWorkflowInstanceStatus(pgeTask.workflowInstId,
             CRAWLING.getWorkflowStatusName())).andReturn(false);
       replay(pgeTask.wm);
@@ -499,7 +501,7 @@ public class TestPGETaskInstance extends TestCase {
       verify(pc);
 
       // Case: UpdateStatus Success, VerifyIngest Fail
-      pgeTask.wm = createMock(XmlRpcWorkflowManagerClient.class);
+      pgeTask.wm = createMock(WorkflowManagerClient.class);
       expect(pgeTask.wm.updateWorkflowInstanceStatus(pgeTask.workflowInstId,
             CRAWLING.getWorkflowStatusName())).andReturn(true);
       replay(pgeTask.wm);

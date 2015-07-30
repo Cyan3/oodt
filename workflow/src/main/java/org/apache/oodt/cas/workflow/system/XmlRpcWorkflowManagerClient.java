@@ -50,7 +50,7 @@ import org.apache.oodt.cas.metadata.Metadata;
  * </p>
  * 
  */
-public class XmlRpcWorkflowManagerClient {
+public class XmlRpcWorkflowManagerClient implements WorkflowManagerClient {
 
     /* our xml rpc client */
     private XmlRpcClient client = null;
@@ -76,6 +76,7 @@ public class XmlRpcWorkflowManagerClient {
         workflowManagerUrl = url;
     }
     
+    @Override
     public boolean refreshRepository()
         throws Exception {
         try {
@@ -90,6 +91,7 @@ public class XmlRpcWorkflowManagerClient {
         }
     }
 
+  @Override
   public String executeDynamicWorkflow(List<String> taskIds, Metadata metadata)
       throws Exception {
     Vector argList = new Vector();
@@ -114,6 +116,7 @@ public class XmlRpcWorkflowManagerClient {
 
   }
 
+    @Override
     public List getRegisteredEvents() throws Exception {
         Vector argList = new Vector();
 
@@ -128,6 +131,7 @@ public class XmlRpcWorkflowManagerClient {
         }
     }
 
+    @Override
     public WorkflowInstancePage getFirstPage() throws Exception {
         Vector argList = new Vector();
         Hashtable pageHash = null;
@@ -145,6 +149,7 @@ public class XmlRpcWorkflowManagerClient {
         return XmlRpcStructFactory.getWorkflowInstancePageFromXmlRpc(pageHash);
     }
 
+    @Override
     public WorkflowInstancePage getNextPage(WorkflowInstancePage currentPage)
             throws Exception {
         Vector argList = new Vector();
@@ -165,6 +170,7 @@ public class XmlRpcWorkflowManagerClient {
         return XmlRpcStructFactory.getWorkflowInstancePageFromXmlRpc(pageHash);
     }
 
+    @Override
     public WorkflowInstancePage getPrevPage(WorkflowInstancePage currentPage)
             throws Exception {
         Vector argList = new Vector();
@@ -185,6 +191,7 @@ public class XmlRpcWorkflowManagerClient {
         return XmlRpcStructFactory.getWorkflowInstancePageFromXmlRpc(pageHash);
     }
 
+    @Override
     public WorkflowInstancePage getLastPage() throws Exception {
         Vector argList = new Vector();
         Hashtable pageHash = null;
@@ -202,6 +209,7 @@ public class XmlRpcWorkflowManagerClient {
         return XmlRpcStructFactory.getWorkflowInstancePageFromXmlRpc(pageHash);
     }
 
+    @Override
     public WorkflowInstancePage paginateWorkflowInstances(int pageNum,
             String status) throws Exception {
         Vector argList = new Vector();
@@ -222,6 +230,7 @@ public class XmlRpcWorkflowManagerClient {
         return XmlRpcStructFactory.getWorkflowInstancePageFromXmlRpc(pageHash);
     }
 
+    @Override
     public WorkflowInstancePage paginateWorkflowInstances(int pageNum)
             throws Exception {
         Vector argList = new Vector();
@@ -241,6 +250,7 @@ public class XmlRpcWorkflowManagerClient {
         return XmlRpcStructFactory.getWorkflowInstancePageFromXmlRpc(pageHash);
     }
 
+    @Override
     public List getWorkflowsByEvent(String eventName) throws Exception {
         List workflows = new Vector();
         Vector workflowVector = new Vector();
@@ -269,6 +279,7 @@ public class XmlRpcWorkflowManagerClient {
         }
     }
 
+    @Override
     public Metadata getWorkflowInstanceMetadata(String wInstId) throws Exception {
         Vector argList = new Vector();
         argList.add(wInstId);
@@ -289,6 +300,7 @@ public class XmlRpcWorkflowManagerClient {
         return met;
     }
 
+    @Override
     public synchronized boolean setWorkflowInstanceCurrentTaskStartDateTime(
             String wInstId, String startDateTimeIsoStr) throws Exception {
         Vector argList = new Vector();
@@ -308,6 +320,7 @@ public class XmlRpcWorkflowManagerClient {
 
     }
 
+    @Override
     public double getWorkflowCurrentTaskWallClockMinutes(String workflowInstId)
             throws Exception {
         Vector argList = new Vector();
@@ -325,6 +338,7 @@ public class XmlRpcWorkflowManagerClient {
         }
     }
 
+    @Override
     public double getWorkflowWallClockMinutes(String workflowInstId)
             throws Exception {
         Vector argList = new Vector();
@@ -342,6 +356,7 @@ public class XmlRpcWorkflowManagerClient {
         }
     }
 
+    @Override
     public synchronized boolean stopWorkflowInstance(String workflowInstId)
             throws Exception {
         Vector argList = new Vector();
@@ -359,6 +374,7 @@ public class XmlRpcWorkflowManagerClient {
         }
     }
 
+    @Override
     public synchronized boolean pauseWorkflowInstance(String workflowInstId)
             throws Exception {
         Vector argList = new Vector();
@@ -376,6 +392,7 @@ public class XmlRpcWorkflowManagerClient {
         }
     }
 
+    @Override
     public synchronized boolean resumeWorkflowInstance(String workflowInstId)
             throws Exception {
         Vector argList = new Vector();
@@ -393,6 +410,7 @@ public class XmlRpcWorkflowManagerClient {
         }
     }
 
+    @Override
     public synchronized boolean setWorkflowInstanceCurrentTaskEndDateTime(
             String wInstId, String endDateTimeIsoStr) throws Exception {
         Vector argList = new Vector();
@@ -412,6 +430,7 @@ public class XmlRpcWorkflowManagerClient {
 
     }
 
+    @Override
     public synchronized boolean updateWorkflowInstanceStatus(
             String workflowInstId, String status) throws Exception {
         Vector argList = new Vector();
@@ -431,6 +450,7 @@ public class XmlRpcWorkflowManagerClient {
 
     }
 
+    @Override
     public synchronized boolean updateWorkflowInstance(WorkflowInstance instance)
             throws Exception {
         Vector argList = new Vector();
@@ -448,6 +468,7 @@ public class XmlRpcWorkflowManagerClient {
         }
     }
 
+    @Override
     public synchronized boolean updateMetadataForWorkflow(
             String workflowInstId, Metadata metadata) throws Exception {
         Vector argList = new Vector();
@@ -467,6 +488,7 @@ public class XmlRpcWorkflowManagerClient {
 
     }
 
+    @Override
     public boolean sendEvent(String eventName, Metadata metadata)
             throws Exception {
         Vector argList = new Vector();
@@ -485,6 +507,7 @@ public class XmlRpcWorkflowManagerClient {
         }
     }
 
+    @Override
     public WorkflowTask getTaskById(String taskId) throws Exception {
         Vector argList = new Vector();
         argList.add(taskId);
@@ -502,6 +525,7 @@ public class XmlRpcWorkflowManagerClient {
         }
     }
 
+    @Override
     public WorkflowCondition getConditionById(String conditionId)
             throws Exception {
         Vector argList = new Vector();
@@ -520,6 +544,7 @@ public class XmlRpcWorkflowManagerClient {
         }
     }
 
+    @Override
     public WorkflowInstance getWorkflowInstanceById(String wInstId)
             throws Exception {
         Vector argList = new Vector();
@@ -541,6 +566,7 @@ public class XmlRpcWorkflowManagerClient {
 
     }
 
+    @Override
     public Workflow getWorkflowById(String workflowId) throws Exception {
         Vector argList = new Vector();
         argList.add(workflowId);
@@ -559,6 +585,7 @@ public class XmlRpcWorkflowManagerClient {
         }
     }
 
+    @Override
     public Vector getWorkflows() throws Exception {
         Vector argList = new Vector();
         Vector works = null;
@@ -591,6 +618,7 @@ public class XmlRpcWorkflowManagerClient {
 
     }
 
+    @Override
     public int getNumWorkflowInstancesByStatus(String status) throws Exception{
         Vector argList = new Vector();
         argList.add(status);
@@ -610,6 +638,7 @@ public class XmlRpcWorkflowManagerClient {
         return numInsts;
     }
 
+    @Override
     public int getNumWorkflowInstances() throws Exception{
         Vector argList = new Vector();
         int numInsts = -1;
@@ -628,6 +657,7 @@ public class XmlRpcWorkflowManagerClient {
         return numInsts;
     }
 
+    @Override
     public Vector getWorkflowInstancesByStatus(String status) throws Exception {
         Vector argList = new Vector();
         argList.add(status);
@@ -658,6 +688,7 @@ public class XmlRpcWorkflowManagerClient {
         }
     }
 
+    @Override
     public Vector getWorkflowInstances() throws Exception {
         Vector argList = new Vector();
         Vector insts = null;
@@ -687,14 +718,10 @@ public class XmlRpcWorkflowManagerClient {
         }
     }
 
-    public static void main(String[] args) {
-       CmdLineUtility cmdLineUtility = new CmdLineUtility();
-       cmdLineUtility.run(args);
-    }
-
     /**
      * @return Returns the workflowManagerUrl.
      */
+    @Override
     public URL getWorkflowManagerUrl() {
         return workflowManagerUrl;
     }
@@ -703,6 +730,7 @@ public class XmlRpcWorkflowManagerClient {
      * @param workflowManagerUrl
      *            The workflowManagerUrl to set.
      */
+    @Override
     public void setWorkflowManagerUrl(URL workflowManagerUrl) {
         this.workflowManagerUrl = workflowManagerUrl;
 
