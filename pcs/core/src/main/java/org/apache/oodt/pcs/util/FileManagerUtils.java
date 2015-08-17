@@ -19,7 +19,7 @@ package org.apache.oodt.pcs.util;
 
 //OODT imports
 import org.apache.oodt.cas.filemgr.system.FileManagerClient;
-import org.apache.oodt.cas.filemgr.system.rpc.FactoryClient;
+import org.apache.oodt.cas.filemgr.util.RpcCommunicationFactory;
 import org.apache.oodt.pcs.metadata.PCSConfigMetadata;
 import org.apache.oodt.pcs.query.FilenameQuery;
 import org.apache.oodt.cas.filemgr.structs.Element;
@@ -65,8 +65,7 @@ public class FileManagerUtils implements PCSConfigMetadata {
 
   public FileManagerUtils(URL fileMgrUrl) {
     try {
-      fmgrClient = FactoryClient.createClient(fileMgrUrl);
-      //new XmlRpcFileManagerClient(fileMgrUrl);
+      fmgrClient = RpcCommunicationFactory.createClient(fileMgrUrl);
     } catch (ConnectionException e) {
       LOG.log(Level.SEVERE, "Unable to connect to file manager: ["
           + fileMgrUrl.toString() + "]");
